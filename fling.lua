@@ -1,5 +1,5 @@
 --[[
-KILASIK FLING - сворачиваемое окно
+KILASIK FLING - выпадающий список с закрытием и отображением целей
 ]]
 
 pcall(function() 
@@ -21,8 +21,8 @@ ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
 -- Главное окно
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 280, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -140, 0.5, -120)
+MainFrame.Size = UDim2.new(0, 280, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -130)
 MainFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -38,18 +38,18 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
 Title.Parent = MainFrame
 
--- Кнопка сворачивания ( < )
+-- Кнопка сворачивания
 local FoldBtn = Instance.new("TextButton")
 FoldBtn.Size = UDim2.new(0, 30, 0, 30)
 FoldBtn.Position = UDim2.new(0, 0, 0, 0)
 FoldBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-FoldBtn.Text = "<"
+FoldBtn.Text = "−"
 FoldBtn.TextColor3 = Color3.new(1, 1, 1)
 FoldBtn.Font = Enum.Font.SourceSansBold
 FoldBtn.TextSize = 20
 FoldBtn.Parent = Title
 
--- Крестик закрытия
+-- Крестик
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 CloseBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -60,7 +60,7 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 20
 CloseBtn.Parent = Title
 
--- Контейнер для содержимого (будем скрывать при сворачивании)
+-- Контейнер содержимого
 local Content = Instance.new("Frame")
 Content.Size = UDim2.new(1, 0, 1, -30)
 Content.Position = UDim2.new(0, 0, 0, 30)
@@ -122,7 +122,7 @@ StopBtn.Font = Enum.Font.SourceSansBold
 StopBtn.TextSize = 14
 StopBtn.Parent = Content
 
--- Текст с целями
+-- ПОЛЕ ДЛЯ ОТОБРАЖЕНИЯ ЦЕЛЕЙ (тут будут писаться ники)
 local TargetDisplay = Instance.new("TextLabel")
 TargetDisplay.Position = UDim2.new(0, 10, 0, 95)
 TargetDisplay.Size = UDim2.new(1, -20, 0, 60)
@@ -136,7 +136,7 @@ TargetDisplay.TextXAlignment = Enum.TextXAlignment.Left
 TargetDisplay.TextYAlignment = Enum.TextYAlignment.Top
 TargetDisplay.Parent = Content
 
--- Счётчик целей
+-- СЧЕТЧИК ЦЕЛЕЙ
 local CountLabel = Instance.new("TextLabel")
 CountLabel.Position = UDim2.new(1, -50, 1, -25)
 CountLabel.Size = UDim2.new(0, 40, 0, 20)
@@ -147,10 +147,10 @@ CountLabel.Font = Enum.Font.SourceSansBold
 CountLabel.TextSize = 18
 CountLabel.Parent = Content
 
--- Выпадающий список игроков
+-- ВЫПАДАЮЩИЙ СПИСОК ИГРОКОВ
 local Dropdown = Instance.new("Frame")
 Dropdown.Size = UDim2.new(0.8, 0, 0, 150)
-Dropdown.Position = UDim2.new(0.1, 0, 0, 75)
+Dropdown.Position = UDim2.new(0.1, 0, 0.5, 0) -- появится под кнопками
 Dropdown.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 Dropdown.BorderSizePixel = 2
 Dropdown.BorderColor3 = Color3.new(1, 1, 1)
@@ -160,8 +160,8 @@ Dropdown.Parent = MainFrame
 
 local DropdownTitle = Instance.new("TextLabel")
 DropdownTitle.Size = UDim2.new(1, 0, 0, 20)
-DropdownTitle.BackgroundColor3 = Color3.new(0.5, 0, 0.5)  -- фиолетовый как ты просил
-DropdownTitle.Text = "ВЫБЕРИ ИГРОКА click!"
+DropdownTitle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+DropdownTitle.Text = "ВЫБЕРИ ИГРОКА"
 DropdownTitle.TextColor3 = Color3.new(1, 1, 1)
 DropdownTitle.Font = Enum.Font.SourceSansBold
 DropdownTitle.TextSize = 14
@@ -178,25 +178,21 @@ PlayerScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
 PlayerScroller.ZIndex = 10
 PlayerScroller.Parent = Dropdown
 
--- Логика сворачивания
-local isFolded = false
-local fullSize = UDim2.new(0, 280, 0, 240)
-local foldedSize = UDim2.new(0, 280, 0, 30)
-
-FoldBtn.MouseButton1Click:Connect(function()
-    isFolded = not isFolded
-    if isFolded then
-        MainFrame.Size = foldedSize
-        Content.Visible = false
-        FoldBtn.Text = ">"
-    else
-        MainFrame.Size = fullSize
-        Content.Visible = true
-        FoldBtn.Text = "<"
+-- Функция обновления отображения целей
+local function UpdateTargetsDisplay()
+    local names = {}
+    for name, _ in pairs(SelectedTargets) do
+        table.insert(names, name)
     end
-end)
+    if #names == 0 then
+        TargetDisplay.Text = "Нет выбранных целей"
+    else
+        TargetDisplay.Text = "Цели: " .. table.concat(names, ", ")
+    end
+    CountLabel.Text = tostring(#names)
+end
 
--- Функция обновления списка игроков
+-- Функция обновления списка игроков в дропдауне
 local function UpdatePlayerList()
     for _, child in pairs(PlayerScroller:GetChildren()) do
         child:Destroy()
@@ -226,11 +222,11 @@ local function UpdatePlayerList()
                 btn.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
             end)
             
+            -- ПРИ КЛИКЕ НА ИГРОКА
             btn.MouseButton1Click:Connect(function()
-                SelectedTargets[p.Name] = p
-                UpdateDisplay()                    -- сразу обновляем
-                TargetDisplay.Text = TargetDisplay.Text  -- дёргаем текст для гарантии
-                Dropdown.Visible = false            -- закрываем список
+                SelectedTargets[p.Name] = p           -- добавляем в список
+                UpdateTargetsDisplay()                 -- обновляем отображение
+                Dropdown.Visible = false               -- ЗАКРЫВАЕМ ДРОПДАУН
             end)
             
             y = y + 26
@@ -240,26 +236,13 @@ local function UpdatePlayerList()
     PlayerScroller.CanvasSize = UDim2.new(0, 0, 0, y + 5)
 end
 
-local function UpdateDisplay()
-    local names = {}
-    for name, _ in pairs(SelectedTargets) do
-        table.insert(names, name)
-    end
-    if #names == 0 then
-        TargetDisplay.Text = "Нет выбранных целей"
-    else
-        TargetDisplay.Text = "Цели: " .. table.concat(names, ", ")
-    end
-    CountLabel.Text = tostring(#names)
-end
-
--- Показать дропдаун
+-- Показать/скрыть дропдаун при нажатии "ДОБАВИТЬ"
 AddBtn.MouseButton1Click:Connect(function()
     UpdatePlayerList()
     Dropdown.Visible = not Dropdown.Visible
 end)
 
--- Закрыть дропдаун при клике вне
+-- Закрыть дропдаун при клике вне его
 game:GetService("UserInputService").InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         task.wait()
@@ -283,16 +266,34 @@ AllBtn.MouseButton1Click:Connect(function()
             SelectedTargets[p.Name] = p
         end
     end
-    UpdateDisplay()
+    UpdateTargetsDisplay()
 end)
 
 -- Убрать всех
 RemoveBtn.MouseButton1Click:Connect(function()
     SelectedTargets = {}
-    UpdateDisplay()
+    UpdateTargetsDisplay()
 end)
 
--- ТВОЯ ОРИГИНАЛЬНАЯ ФУНКЦИЯ ФЛИНГА (НЕ ТРОГАЛ)
+-- Сворачивание
+local isFolded = false
+local fullSize = UDim2.new(0, 280, 0, 260)
+local foldedSize = UDim2.new(0, 280, 0, 30)
+
+FoldBtn.MouseButton1Click:Connect(function()
+    isFolded = not isFolded
+    if isFolded then
+        MainFrame.Size = foldedSize
+        Content.Visible = false
+        FoldBtn.Text = "+"
+    else
+        MainFrame.Size = fullSize
+        Content.Visible = true
+        FoldBtn.Text = "−"
+    end
+end)
+
+-- ТВОЯ ОРИГИНАЛЬНАЯ ФУНКЦИЯ ФЛИНГА
 local function SkidFling(TargetPlayer)
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
@@ -461,7 +462,7 @@ end)
 StopBtn.MouseButton1Click:Connect(function()
     FlingActive = false
     TargetDisplay.Text = "Остановлено"
-    UpdateDisplay()
+    UpdateTargetsDisplay()
 end)
 
 -- ЗАКРЫТЬ
@@ -470,4 +471,4 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
-print("✅ KILASIK FLING: сворачиваемое окно загружено!")
+print("✅ KILASIK FLING: список закрывается, цели отображаются!")
