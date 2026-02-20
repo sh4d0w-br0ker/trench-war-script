@@ -228,8 +228,7 @@ local function UpdatePlayerList()
             
             btn.MouseButton1Click:Connect(function()
                 SelectedTargets[p.Name] = p
-                task.wait() -- небольшая задержка для гарантии обновления GUI
-                UpdateDisplay()
+                task.defer(UpdateDisplay)  -- ЕБАННОЕ ОБНОВЛЕНИЕ СРАЗУ ПОСЛЕ КЛИКА
                 Dropdown.Visible = false
             end)
             
