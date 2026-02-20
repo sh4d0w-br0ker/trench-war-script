@@ -160,7 +160,7 @@ Dropdown.Parent = MainFrame
 
 local DropdownTitle = Instance.new("TextLabel")
 DropdownTitle.Size = UDim2.new(1, 0, 0, 20)
-DropdownTitle.BackgroundColor3 = Color3.new(0.5, 0, 0.5)
+DropdownTitle.BackgroundColor3 = Color3.new(0.5, 0, 0.5)  -- фиолетовый как ты просил
 DropdownTitle.Text = "ВЫБЕРИ ИГРОКА click!"
 DropdownTitle.TextColor3 = Color3.new(1, 1, 1)
 DropdownTitle.Font = Enum.Font.SourceSansBold
@@ -228,8 +228,9 @@ local function UpdatePlayerList()
             
             btn.MouseButton1Click:Connect(function()
                 SelectedTargets[p.Name] = p
-                task.defer(UpdateDisplay)  -- ЕБАННОЕ ОБНОВЛЕНИЕ СРАЗУ ПОСЛЕ КЛИКА
-                Dropdown.Visible = false
+                UpdateDisplay()                    -- сразу обновляем
+                TargetDisplay.Text = TargetDisplay.Text  -- дёргаем текст для гарантии
+                Dropdown.Visible = false            -- закрываем список
             end)
             
             y = y + 26
