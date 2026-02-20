@@ -3,65 +3,67 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
-if CoreGui:FindFirstChild("Final_Menu") then CoreGui.Final_Menu:Destroy() end
+if CoreGui:FindFirstChild("Screwed_Menu") then CoreGui.Screwed_Menu:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui", CoreGui)
-ScreenGui.Name = "Final_Menu"
+ScreenGui.Name = "Screwed_Menu"
 
--- Главный контейнер (самый верхний Menu)
-local Root = Instance.new("Frame", ScreenGui)
-Root.Size = UDim2.new(0, 220, 0, 35)
-Root.Position = UDim2.new(0.5, -110, 0.1, 0)
-Root.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Root.BorderSizePixel = 0
-Root.Active = true
-Root.Draggable = true
-Instance.new("UICorner", Root)
+-- ГЛАВНАЯ ПЛАНКА "MENU"
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 220, 0, 35)
+Main.Position = UDim2.new(0.5, -110, 0.1, 0)
+Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main)
 
-local RootTitle = Instance.new("TextLabel", Root)
-RootTitle.Size = UDim2.new(1, -40, 0, 35)
-RootTitle.Position = UDim2.new(0, 10, 0, 0)
-RootTitle.Text = "Menu"
-RootTitle.TextColor3 = Color3.new(1, 1, 1)
-RootTitle.BackgroundTransparency = 1
-RootTitle.Font = Enum.Font.SourceSansBold
-RootTitle.TextSize = 18
-RootTitle.TextXAlignment = Enum.TextXAlignment.Left
+local MainTitle = Instance.new("TextLabel", Main)
+MainTitle.Size = UDim2.new(1, -40, 0, 35)
+MainTitle.Position = UDim2.new(0, 10, 0, 0)
+MainTitle.Text = "Menu"
+MainTitle.TextColor3 = Color3.new(1, 1, 1)
+MainTitle.BackgroundTransparency = 1
+MainTitle.Font = Enum.Font.SourceSansBold
+MainTitle.TextSize = 18
+MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-local RootToggle = Instance.new("TextButton", Root)
-RootToggle.Size = UDim2.new(0, 30, 0, 30)
-RootToggle.Position = UDim2.new(1, -35, 0, 2)
-RootToggle.Text = "<"
-RootToggle.TextColor3 = Color3.new(1, 1, 1)
-RootToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-Instance.new("UICorner", RootToggle)
+local MainToggle = Instance.new("TextButton", Main)
+MainToggle.Size = UDim2.new(0, 30, 0, 30)
+MainToggle.Position = UDim2.new(1, -35, 0, 2)
+MainToggle.Text = "<"
+MainToggle.TextColor3 = Color3.new(1, 1, 1)
+MainToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+Instance.new("UICorner", MainToggle)
 
--- Контейнер для вкладок (появляется под Menu)
-local Holder = Instance.new("Frame", Root)
-Holder.Size = UDim2.new(1, 0, 0, 0)
+-- КОНТЕЙНЕР ДЛЯ ВСЕГО ЧТО НИЖЕ (Склеенный блок)
+local Holder = Instance.new("Frame", Main)
 Holder.Position = UDim2.new(0, 0, 0, 40)
+Holder.Size = UDim2.new(1, 0, 0, 0)
 Holder.BackgroundTransparency = 1
 Holder.Visible = false
+Holder.ClipsDescendants = true
+
 local HolderList = Instance.new("UIListLayout", Holder)
-HolderList.Padding = UDim.new(0, 5)
+HolderList.Padding = UDim.new(0, 2) -- Склейка плотная
 
--- Функция создания вложенных меню (Kill Gui / Esp Gui)
-local function CreateSubMenu(name)
-    local Frame = Instance.new("Frame", Holder)
-    Frame.Size = UDim2.new(1, 0, 0, 35)
-    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Frame.BorderSizePixel = 0
-    Frame.ClipsDescendants = true
-    Instance.new("UICorner", Frame)
+-- ФУНКЦИЯ СОЗДАНИЯ ПОД-МЕНЮ (Kill / Esp)
+local function CreateSub(name)
+    local SubFrame = Instance.new("Frame", Holder)
+    SubFrame.Size = UDim2.new(1, 0, 0, 35)
+    SubFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    SubFrame.BorderSizePixel = 0
+    SubFrame.ClipsDescendants = true
+    Instance.new("UICorner", SubFrame)
 
-    local btn = Instance.new("TextButton", Frame)
-    btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.Text = name .. "          <"
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.BackgroundTransparency = 1
-    btn.Font = Enum.Font.SourceSansBold
+    local SubBtn = Instance.new("TextButton", SubFrame)
+    SubBtn.Size = UDim2.new(1, 0, 0, 35)
+    SubBtn.Text = name .. "          <"
+    SubBtn.TextColor3 = Color3.new(1, 1, 1)
+    SubBtn.BackgroundTransparency = 1
+    SubBtn.Font = Enum.Font.SourceSansBold
 
-    local Content = Instance.new("Frame", Frame)
+    local Content = Instance.new("Frame", SubFrame)
     Content.Size = UDim2.new(1, 0, 0, 250)
     Content.Position = UDim2.new(0, 0, 0, 35)
     Content.BackgroundTransparency = 1
@@ -69,71 +71,80 @@ local function CreateSubMenu(name)
     CL.Padding = UDim.new(0, 5)
     CL.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-    local subOpen = false
-    btn.MouseButton1Click:Connect(function()
-        subOpen = not subOpen
-        Frame.Size = subOpen and UDim2.new(1, 0, 0, 285) or UDim2.new(1, 0, 0, 35)
-        btn.Text = name .. (subOpen and "          v" or "          <")
-        -- Подгоняем размер Holder под открытые саб-меню
-        local totalHeight = 0
-        for _, child in pairs(Holder:GetChildren()) do
-            if child:IsA("Frame") then totalHeight = totalHeight + child.Size.Y.Offset + 5 end
+    local isOpen = false
+    SubBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        SubFrame.Size = isOpen and UDim2.new(1, 0, 0, 285) or UDim2.new(1, 0, 0, 35)
+        SubBtn.Text = name .. (isOpen and "          v" or "          <")
+        
+        -- Авто-подгон высоты холдера
+        local h = 0
+        for _, v in pairs(Holder:GetChildren()) do
+            if v:IsA("Frame") then h = h + v.Size.Y.Offset + 2 end
         end
-        Holder.Size = UDim2.new(1, 0, 0, totalHeight)
+        Holder.Size = UDim2.new(1, 0, 0, h)
+        Main.Size = UDim2.new(0, 220, 0, h + 40)
     end)
     return Content
 end
 
--- Создаем саб-меню
-local KillContent = CreateSubMenu("kill Gui")
-local EspContent = CreateSubMenu("Esp Gui")
+-- Секции
+local KillUI = CreateSub("kill Gui")
+local EspUI = CreateSub("Esp Gui")
 
--- [ ЭЛЕМЕНТЫ KILL ]
-local TargetInput = Instance.new("TextBox", KillContent)
+-- НАПОЛНЕНИЕ KILL
+local TargetInput = Instance.new("TextBox", KillUI)
 TargetInput.Size = UDim2.new(0.9, 0, 0, 30)
-TargetInput.PlaceholderText = "Target..."
-TargetInput.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+TargetInput.PlaceholderText = "Username..."
+TargetInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 TargetInput.TextColor3 = Color3.new(1,1,1)
 
-local KillBtn = Instance.new("TextButton", KillContent)
+local KillBtn = Instance.new("TextButton", KillUI)
 KillBtn.Size = UDim2.new(0.9, 0, 0, 35)
 KillBtn.Text = "Kill Player"
 KillBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 KillBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", KillBtn)
 
-local AuraBtn = Instance.new("TextButton", KillContent)
+local AuraBtn = Instance.new("TextButton", KillUI)
 AuraBtn.Size = UDim2.new(0.9, 0, 0, 35)
 AuraBtn.Text = "Aura: OFF"
-AuraBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AuraBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 AuraBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", AuraBtn)
 
--- [ ЭЛЕМЕНТЫ ESP ]
-local EspAllBtn = Instance.new("TextButton", EspContent)
-EspAllBtn.Size = UDim2.new(0.9, 0, 0, 35)
-EspAllBtn.Text = "ESP All: OFF"
-EspAllBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-EspAllBtn.TextColor3 = Color3.new(1,1,1)
+-- НАПОЛНЕНИЕ ESP
+local EspBtn = Instance.new("TextButton", EspUI)
+EspBtn.Size = UDim2.new(0.9, 0, 0, 35)
+EspBtn.Text = "ESP All: OFF"
+EspBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+EspBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", EspBtn)
 
-local PlayerScroll = Instance.new("ScrollingFrame", EspContent)
-PlayerScroll.Size = UDim2.new(0.9, 0, 0, 100)
-PlayerScroll.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-PlayerScroll.CanvasSize = UDim2.new(0,0,4,0)
-Instance.new("UIListLayout", PlayerScroll)
+local Scroll = Instance.new("ScrollingFrame", EspUI)
+Scroll.Size = UDim2.new(0.9, 0, 0, 100)
+Scroll.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Scroll.CanvasSize = UDim2.new(0,0,5,0)
+Instance.new("UIListLayout", Scroll)
 
--- Логика раскрытия основного Menu
-local rootOpen = false
-RootToggle.MouseButton1Click:Connect(function()
-    rootOpen = not rootOpen
-    Holder.Visible = rootOpen
-    RootToggle.Text = rootOpen and "v" or "<"
-    Root.ClipsDescendants = not rootOpen
-    Root.Size = rootOpen and UDim2.new(0, 220, 0, 600) or UDim2.new(0, 220, 0, 35)
+-- ЛОГИКА ГЛАВНОГО MENU
+MainToggle.MouseButton1Click:Connect(function()
+    local show = not Holder.Visible
+    Holder.Visible = show
+    MainToggle.Text = show and "v" or "<"
+    if not show then 
+        Main.Size = UDim2.new(0, 220, 0, 35)
+    else
+        local h = 0
+        for _, v in pairs(Holder:GetChildren()) do if v:IsA("Frame") then h = h + v.Size.Y.Offset + 2 end end
+        Main.Size = UDim2.new(0, 220, 0, h + 40)
+    end
 end)
 
--- РАБОТА СКРИПТА (Kill/Esp)
+-- ФУНКЦИОНАЛ
 local function fire(h, r)
-    local t = LocalPlayer.Character:FindFirstChild("Pistol")
-    if t and t:FindFirstChild("RemoteEvent") then t.RemoteEvent:FireServer(h, 100, {9.17, r.CFrame}) end
+    local p = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Pistol")
+    if p and p:FindFirstChild("RemoteEvent") then p.RemoteEvent:FireServer(h, 100, {9.17, r.CFrame}) end
 end
 
 KillBtn.MouseButton1Click:Connect(function()
@@ -144,15 +155,15 @@ KillBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-local AuraOn = false
+local Aura = false
 AuraBtn.MouseButton1Click:Connect(function()
-    AuraOn = not AuraOn
-    AuraBtn.Text = AuraOn and "Aura: ON" or "Aura: OFF"
-    AuraBtn.BackgroundColor3 = AuraOn and Color3.fromRGB(130, 0, 255) or Color3.fromRGB(60,60,60)
+    Aura = not Aura
+    AuraBtn.Text = Aura and "Aura: ON" or "Aura: OFF"
+    AuraBtn.BackgroundColor3 = Aura and Color3.fromRGB(120, 0, 255) or Color3.fromRGB(60,60,60)
 end)
 
 RunService.Heartbeat:Connect(function()
-    if AuraOn then
+    if Aura then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character then
                 local h = p.Character:FindFirstChild("Humanoid")
@@ -162,32 +173,31 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-local EspOn = false
-EspAllBtn.MouseButton1Click:Connect(function()
-    EspOn = not EspOn
-    EspAllBtn.Text = EspOn and "ESP All: ON" or "ESP All: OFF"
-    EspAllBtn.BackgroundColor3 = EspOn and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60,60,60)
+local Esp = false
+EspBtn.MouseButton1Click:Connect(function()
+    Esp = not Esp
+    EspBtn.Text = Esp and "ESP: ON" or "ESP: OFF"
+    EspBtn.BackgroundColor3 = Esp and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60,60,60)
 end)
 
 RunService.RenderStepped:Connect(function()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
-            local high = p.Character:FindFirstChild("Highlight")
-            if EspOn or (TargetInput.Text ~= "" and p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower()) then
-                if not high then high = Instance.new("Highlight", p.Character) end
-                high.FillColor = p.TeamColor.Color
-            elseif high then high:Destroy() end
+            local hi = p.Character:FindFirstChild("Highlight")
+            if Esp or (TargetInput.Text ~= "" and p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower()) then
+                if not hi then hi = Instance.new("Highlight", p.Character) end
+                hi.FillColor = p.TeamColor.Color
+            elseif hi then hi:Destroy() end
         end
     end
 end)
 
--- Обновление списка игроков
-local function refresh()
-    for _, c in pairs(PlayerScroll:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+local function up()
+    for _, c in pairs(Scroll:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
-            local b = Instance.new("TextButton", PlayerScroll)
-            b.Size = UDim2.new(1,0,0,20)
+            local b = Instance.new("TextButton", Scroll)
+            b.Size = UDim2.new(1, 0, 0, 20)
             b.Text = p.Name
             b.BackgroundColor3 = Color3.fromRGB(45,45,45)
             b.TextColor3 = Color3.new(1,1,1)
@@ -195,5 +205,7 @@ local function refresh()
         end
     end
 end
-spawn(function() while wait(5) do refresh() end end)
-refresh()
+spawn(function() while wait(5) do up() end end)
+up()
+
+print("One Menu - Two Sections - All Works.")
