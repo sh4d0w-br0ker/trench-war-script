@@ -3,159 +3,199 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
-if CoreGui:FindFirstChild("Final_Straight_Gui") then CoreGui.Final_Straight_Gui:Destroy() end
+-- Удаление старой копии
+if CoreGui:FindFirstChild("Unified_Menu_V3") then CoreGui.Unified_Menu_V3:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui", CoreGui)
-ScreenGui.Name = "Final_Straight_Gui"
+ScreenGui.Name = "Unified_Menu_V3"
 
--- Общий контейнер, который держит обе части вместе
+-- Переменные
+local AuraEnabled = false
+local AuraConnection = nil
+local EspEnabled = false
+
+-- ГЛАВНОЕ ОКНО
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 220, 0, 72)
+MainFrame.Size = UDim2.new(0, 220, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -110, 0.2, 0)
-MainFrame.BackgroundTransparency = 1
+MainFrame.BackgroundTransparency = 1 -- Прозрачный фон, так как блоки будут внутри
 MainFrame.Active = true
 MainFrame.Draggable = true
 
-local Layout = Instance.new("UIListLayout", MainFrame)
-Layout.Padding = UDim.new(0, 2) -- Склейка плашек
+local MainList = Instance.new("UIListLayout", MainFrame)
+MainList.Padding = UDim.new(0, 5)
+MainList.SortOrder = Enum.SortOrder.LayoutOrder
 
--- Функция сборки секции
-local function MakeSection(name)
-    local Sec = Instance.new("Frame", MainFrame)
-    Sec.Size = UDim2.new(1, 0, 0, 35)
-    Sec.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Sec.BorderSizePixel = 0
-    Sec.ClipsDescendants = true
-    Instance.new("UICorner", Sec)
+-- Функция создания раскрывающихся секций
+local function CreateSection(name, order)
+    local SectionFrame = Instance.new("Frame", MainFrame)
+    SectionFrame.Size = UDim2.new(1, 0, 0, 35)
+    SectionFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SectionFrame.BorderSizePixel = 0
+    SectionFrame.LayoutOrder = order
+    SectionFrame.ClipsDescendants = true
+    
+    local Corner = Instance.new("UICorner", SectionFrame)
+    
+    local Title = Instance.new("TextLabel", SectionFrame)
+    Title.Size = UDim2.new(1, -40, 0, 35)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Text = name
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 16
+    Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    local Btn = Instance.new("TextButton", Sec)
-    Btn.Size = UDim2.new(1, 0, 0, 35)
-    Btn.Text = name .. "  <"
-    Btn.TextColor3 = Color3.new(1, 1, 1)
-    Btn.BackgroundTransparency = 1
-    Btn.Font = Enum.Font.SourceSansBold
-    Btn.TextSize = 16
+    local ToggleBtn = Instance.new("TextButton", SectionFrame)
+    ToggleBtn.Size = UDim2.new(0, 30, 0, 30)
+    ToggleBtn.Position = UDim2.new(1, -35, 0, 2)
+    ToggleBtn.Text = "<"
+    ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Instance.new("UICorner", ToggleBtn)
 
-    local Content = Instance.new("Frame", Sec)
-    Content.Size = UDim2.new(1, 0, 0, 280)
+    local Content = Instance.new("Frame", SectionFrame)
+    Content.Size = UDim2.new(1, 0, 0, 300)
     Content.Position = UDim2.new(0, 0, 0, 35)
     Content.BackgroundTransparency = 1
-    Instance.new("UIListLayout", Content).HorizontalAlignment = Enum.HorizontalAlignment.Center
+    
+    local ContentList = Instance.new("UIListLayout", Content)
+    ContentList.Padding = UDim.new(0, 5)
+    ContentList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    Instance.new("UIPadding", Content).PaddingTop = UDim.new(0, 5)
 
-    local open = false
-    Btn.MouseButton1Click:Connect(function()
-        open = not open
-        Sec.Size = open and UDim2.new(1, 0, 0, 315) or UDim2.new(1, 0, 0, 35)
-        Btn.Text = name .. (open and "  v" or "  <")
-        
-        -- Считаем общую высоту для Draggable фрейма
-        local h = 0
-        for _, v in pairs(MainFrame:GetChildren()) do
-            if v:IsA("Frame") then h = h + v.Size.Y.Offset + 2 end
-        end
-        MainFrame.Size = UDim2.new(0, 220, 0, h)
+    local isOpen = false
+    ToggleBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        ToggleBtn.Text = isOpen and "v" or "<"
+        SectionFrame.Size = isOpen and UDim2.new(1, 0, 0, 335) or UDim2.new(1, 0, 0, 35)
     end)
+
     return Content
 end
 
-local KillBox = MakeSection("Kill Gui")
-local EspBox = MakeSection("Esp Gui")
+-- Создаем секции
+local KillContent = CreateSection("Kill Gui", 1)
+local EspContent = CreateSection("Esp Gui", 2)
 
--- Контент Kill
-local Target = Instance.new("TextBox", KillBox)
-Target.Size = UDim2.new(0.9, 0, 0, 30)
-Target.PlaceholderText = "Username..."
-Target.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-Target.TextColor3 = Color3.new(1, 1, 1)
+--- [ ЛОГИКА KILL ] ---
+local TargetInput = Instance.new("TextBox", KillContent)
+TargetInput.Size = UDim2.new(0.9, 0, 0, 30)
+TargetInput.PlaceholderText = "Target Name..."
+TargetInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TargetInput.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", TargetInput)
 
-local KBtn = Instance.new("TextButton", KillBox)
-KBtn.Size = UDim2.new(0.9, 0, 0, 35)
-KBtn.Text = "Kill Player"
-KBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-KBtn.TextColor3 = Color3.new(1, 1, 1)
+local KillBtn = Instance.new("TextButton", KillContent)
+KillBtn.Size = UDim2.new(0.9, 0, 0, 35)
+KillBtn.Text = "Kill Player"
+KillBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+KillBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", KillBtn)
 
-local ABtn = Instance.new("TextButton", KillBox)
-ABtn.Size = UDim2.new(0.9, 0, 0, 35)
-ABtn.Text = "Aura: OFF"
-ABtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-ABtn.TextColor3 = Color3.new(1, 1, 1)
+local AuraBtn = Instance.new("TextButton", KillContent)
+AuraBtn.Size = UDim2.new(0.9, 0, 0, 35)
+AuraBtn.Text = "Aura: OFF"
+AuraBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+AuraBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", AuraBtn)
 
--- Контент ESP
-local EAll = Instance.new("TextButton", EspBox)
-EAll.Size = UDim2.new(0.9, 0, 0, 35)
-EAll.Text = "ESP All: OFF"
-EAll.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-EAll.TextColor3 = Color3.new(1, 1, 1)
+--- [ ЛОГИКА ESP ] ---
+local EspAllBtn = Instance.new("TextButton", EspContent)
+EspAllBtn.Size = UDim2.new(0.9, 0, 0, 35)
+EspAllBtn.Text = "ESP All: OFF"
+EspAllBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+EspAllBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", EspAllBtn)
 
-local List = Instance.new("ScrollingFrame", EspBox)
-List.Size = UDim2.new(0.9, 0, 0, 120)
-List.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-List.CanvasSize = UDim2.new(0, 0, 5, 0)
-Instance.new("UIListLayout", List)
+-- Список игроков (общий для обеих вкладок)
+local PlayerList = Instance.new("ScrollingFrame", EspContent)
+PlayerList.Size = UDim2.new(0.9, 0, 0, 150)
+PlayerList.BackgroundTransparency = 0.9
+PlayerList.CanvasSize = UDim2.new(0, 0, 5, 0)
+local ListLayout = Instance.new("UIListLayout", PlayerList)
 
--- Логика Pistol
-local function fire(h, r)
-    local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Pistol")
-    if tool and tool:FindFirstChild("RemoteEvent") then tool.RemoteEvent:FireServer(h, 100, {9.17, r.CFrame}) end
+local function updatePlayers()
+    for _, child in pairs(PlayerList:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local btn = Instance.new("TextButton", PlayerList)
+            btn.Size = UDim2.new(1, 0, 0, 20)
+            btn.Text = p.Name
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            btn.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+            btn.MouseButton1Click:Connect(function() TargetInput.Text = p.Name end)
+        end
+    end
+end
+spawn(function() while wait(5) do updatePlayers() end end)
+updatePlayers()
+
+-- ФУНКЦИИ ОРУЖИЯ
+local function getTool() return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Pistol") end
+local function fireRemote(tHum, tRoot)
+    local tool = getTool()
+    if tool and tool:FindFirstChild("RemoteEvent") then
+        tool.RemoteEvent:FireServer(tHum, 100, {9.17, tRoot.CFrame})
+    end
 end
 
-KBtn.MouseButton1Click:Connect(function()
+-- КНОПКИ ДЕЙСТВИЯ
+KillBtn.MouseButton1Click:Connect(function()
+    local name = TargetInput.Text:lower()
     for _, p in pairs(Players:GetPlayers()) do
-        if p.Name:lower():sub(1, #Target.Text) == Target.Text:lower() and p.Character then
-            fire(p.Character:FindFirstChild("Humanoid"), p.Character:FindFirstChild("HumanoidRootPart"))
+        if p.Name:lower():sub(1, #name) == name and p.Character then
+            fireRemote(p.Character:FindFirstChild("Humanoid"), p.Character:FindFirstChild("HumanoidRootPart"))
         end
     end
 end)
 
-local Aura = false
-ABtn.MouseButton1Click:Connect(function()
-    Aura = not Aura
-    ABtn.Text = Aura and "Aura: ON" or "Aura: OFF"
-    ABtn.BackgroundColor3 = Aura and Color3.fromRGB(130, 0, 255) or Color3.fromRGB(60, 60, 60)
+AuraBtn.MouseButton1Click:Connect(function()
+    AuraEnabled = not AuraEnabled
+    AuraBtn.Text = AuraEnabled and "Aura: ON" or "Aura: OFF"
+    AuraBtn.BackgroundColor3 = AuraEnabled and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(60, 60, 60)
+    if AuraEnabled then
+        AuraConnection = RunService.Heartbeat:Connect(function()
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    local h = p.Character:FindFirstChild("Humanoid")
+                    local r = p.Character:FindFirstChild("HumanoidRootPart")
+                    if h and r and h.Health > 0 then fireRemote(h, r) end
+                end
+            end
+        end)
+    else
+        if AuraConnection then AuraConnection:Disconnect() end
+    end
 end)
 
-RunService.Heartbeat:Connect(function()
-    if Aura then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
-                local h = p.Character:FindFirstChild("Humanoid")
-                if h and h.Health > 0 then fire(h, p.Character.HumanoidRootPart) end
+EspAllBtn.MouseButton1Click:Connect(function()
+    EspEnabled = not EspEnabled
+    EspAllBtn.Text = EspEnabled and "ESP All: ON" or "ESP All: OFF"
+    EspAllBtn.BackgroundColor3 = EspEnabled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60, 60, 60)
+end)
+
+-- РЕНДЕР ESP (Командные цвета)
+RunService.RenderStepped:Connect(function()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local highlight = p.Character:FindFirstChild("Highlight")
+            
+            -- Если ESP включен ИЛИ ник совпадает с полем ввода
+            if EspEnabled or (TargetInput.Text ~= "" and p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower()) then
+                if not highlight then
+                    highlight = Instance.new("Highlight", p.Character)
+                    highlight.OutlineTransparency = 0
+                    highlight.FillTransparency = 0.5
+                end
+                -- Определяем цвет по команде из Leaderboard
+                highlight.FillColor = p.TeamColor.Color
+            else
+                if highlight then highlight:Destroy() end
             end
         end
     end
 end)
 
-local EspOn = false
-EAll.MouseButton1Click:Connect(function()
-    EspOn = not EspOn
-    EAll.Text = EspOn and "ESP: ON" or "ESP: OFF"
-    EAll.BackgroundColor3 = EspOn and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60, 60, 60)
-end)
-
-RunService.RenderStepped:Connect(function()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            local hi = p.Character:FindFirstChild("Highlight")
-            if EspOn or (Target.Text ~= "" and p.Name:lower():sub(1, #Target.Text) == Target.Text:lower()) then
-                if not hi then hi = Instance.new("Highlight", p.Character) end
-                hi.FillColor = p.TeamColor.Color
-            elseif hi then hi:Destroy() end
-        end
-    end
-end)
-
-local function refresh()
-    for _, c in pairs(List:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then
-            local b = Instance.new("TextButton", List)
-            b.Size = UDim2.new(1, 0, 0, 20)
-            b.Text = p.Name
-            b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            b.TextColor3 = Color3.new(1, 1, 1)
-            b.MouseButton1Click:Connect(function() Target.Text = p.Name end)
-        end
-    end
-end
-spawn(function() while wait(5) do refresh() end end)
-refresh()
+print("Unified Killer/ESP Menu Loaded.")
