@@ -1,9 +1,8 @@
 --[[
-KILASIK FLING - АБСОЛЮТНО РАБОЧАЯ ВЕРСИЯ
-Создаётся в PlayerGui, видно всегда
+KILASIK FLING - ВЫПАДАЮЩИЙ СПИСОК + ТВОЙ ФЛИНГ
+НИЧЕГО ЛИШНЕГО, ТОЛЬКО РАБОЧИЙ КОД
 ]]
 
--- Отключаем защиту
 pcall(function() 
     getgenv().OldPos = nil
     getgenv().FPDH = workspace.FallenPartsDestroyHeight
@@ -11,23 +10,21 @@ end)
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
+local SelectedTargets = {}
+local FlingActive = false
 
--- Ждём, пока игрок загрузится
 repeat wait() until Player and Player.Parent
 
--- Создаём GUI в PlayerGui (это место работает всегда)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KILASIK_FLING"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
--- Главное окно (яркое, чтобы сразу заметить)
+-- Окно
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 250)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -125)
-MainFrame.BackgroundColor3 = Color3.new(0, 0, 0) -- Чёрный фон
-MainFrame.BorderSizePixel = 2
-MainFrame.BorderColor3 = Color3.new(1, 0, 0) -- Красная рамка
+MainFrame.Size = UDim2.new(0, 280, 0, 240)
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -120)
+MainFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
@@ -35,14 +32,14 @@ MainFrame.Parent = ScreenGui
 -- Заголовок
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundColor3 = Color3.new(0.8, 0, 0)
+Title.BackgroundColor3 = Color3.new(0.6, 0, 0)
 Title.Text = "⚡ KILASIK FLING ⚡"
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 20
+Title.TextSize = 18
 Title.Parent = MainFrame
 
--- Кнопка закрыть (крестик)
+-- Крестик
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 CloseBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -53,130 +50,196 @@ CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.TextSize = 20
 CloseBtn.Parent = Title
 
--- Поле ввода ника
-local InputBox = Instance.new("TextBox")
-InputBox.Position = UDim2.new(0, 10, 0, 40)
-InputBox.Size = UDim2.new(1, -20, 0, 30)
-InputBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-InputBox.Text = ""
-InputBox.PlaceholderText = "Введите ник игрока"
-InputBox.TextColor3 = Color3.new(1, 1, 1)
-InputBox.Font = Enum.Font.SourceSans
-InputBox.TextSize = 16
-InputBox.ClearTextOnFocus = false
-InputBox.Parent = MainFrame
-
--- Кнопка "Добавить"
+-- Кнопка "ДОБАВИТЬ"
 local AddBtn = Instance.new("TextButton")
-AddBtn.Position = UDim2.new(0, 10, 0, 80)
-AddBtn.Size = UDim2.new(0.3, -5, 0, 35)
+AddBtn.Position = UDim2.new(0, 10, 0, 40)
+AddBtn.Size = UDim2.new(0.3, -5, 0, 30)
 AddBtn.BackgroundColor3 = Color3.new(0, 0.5, 1)
 AddBtn.Text = "ДОБАВИТЬ"
 AddBtn.TextColor3 = Color3.new(1, 1, 1)
 AddBtn.Font = Enum.Font.SourceSansBold
-AddBtn.TextSize = 14
+AddBtn.TextSize = 12
 AddBtn.Parent = MainFrame
 
--- Кнопка "Все"
+-- Кнопка "ВСЕ"
 local AllBtn = Instance.new("TextButton")
-AllBtn.Position = UDim2.new(0.35, 0, 0, 80)
-AllBtn.Size = UDim2.new(0.3, -5, 0, 35)
+AllBtn.Position = UDim2.new(0.35, 0, 0, 40)
+AllBtn.Size = UDim2.new(0.3, -5, 0, 30)
 AllBtn.BackgroundColor3 = Color3.new(1, 0.5, 0)
 AllBtn.Text = "ВСЕ"
 AllBtn.TextColor3 = Color3.new(1, 1, 1)
 AllBtn.Font = Enum.Font.SourceSansBold
-AllBtn.TextSize = 14
+AllBtn.TextSize = 12
 AllBtn.Parent = MainFrame
 
--- Кнопка "Убрать всех"
-local RemoveAllBtn = Instance.new("TextButton")
-RemoveAllBtn.Position = UDim2.new(0.7, 0, 0, 80)
-RemoveAllBtn.Size = UDim2.new(0.3, -10, 0, 35)
-RemoveAllBtn.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
-RemoveAllBtn.Text = "УБРАТЬ"
-RemoveAllBtn.TextColor3 = Color3.new(1, 1, 1)
-RemoveAllBtn.Font = Enum.Font.SourceSansBold
-RemoveAllBtn.TextSize = 14
-RemoveAllBtn.Parent = MainFrame
+-- Кнопка "УБРАТЬ"
+local RemoveBtn = Instance.new("TextButton")
+RemoveBtn.Position = UDim2.new(0.7, 0, 0, 40)
+RemoveBtn.Size = UDim2.new(0.3, -10, 0, 30)
+RemoveBtn.BackgroundColor3 = Color3.new(0.8, 0, 0)
+RemoveBtn.Text = "УБРАТЬ"
+RemoveBtn.TextColor3 = Color3.new(1, 1, 1)
+RemoveBtn.Font = Enum.Font.SourceSansBold
+RemoveBtn.TextSize = 12
+RemoveBtn.Parent = MainFrame
 
--- Кнопка "Флинг"
+-- Кнопки "ФЛИНГ" и "СТОП"
 local FlingBtn = Instance.new("TextButton")
-FlingBtn.Position = UDim2.new(0, 10, 0, 125)
-FlingBtn.Size = UDim2.new(0.45, -5, 0, 40)
+FlingBtn.Position = UDim2.new(0, 10, 0, 80)
+FlingBtn.Size = UDim2.new(0.45, -5, 0, 35)
 FlingBtn.BackgroundColor3 = Color3.new(0, 0.8, 0)
 FlingBtn.Text = "🚀 ФЛИНГ"
 FlingBtn.TextColor3 = Color3.new(1, 1, 1)
 FlingBtn.Font = Enum.Font.SourceSansBold
-FlingBtn.TextSize = 18
+FlingBtn.TextSize = 14
 FlingBtn.Parent = MainFrame
 
--- Кнопка "Стоп"
 local StopBtn = Instance.new("TextButton")
-StopBtn.Position = UDim2.new(0.5, 5, 0, 125)
-StopBtn.Size = UDim2.new(0.45, -15, 0, 40)
+StopBtn.Position = UDim2.new(0.5, 5, 0, 80)
+StopBtn.Size = UDim2.new(0.45, -15, 0, 35)
 StopBtn.BackgroundColor3 = Color3.new(0.8, 0, 0)
 StopBtn.Text = "⏹️ СТОП"
 StopBtn.TextColor3 = Color3.new(1, 1, 1)
 StopBtn.Font = Enum.Font.SourceSansBold
-StopBtn.TextSize = 18
+StopBtn.TextSize = 14
 StopBtn.Parent = MainFrame
 
--- Список выбранных целей (будем показывать здесь)
-local TargetsList = Instance.new("TextLabel")
-TargetsList.Position = UDim2.new(0, 10, 0, 175)
-TargetsList.Size = UDim2.new(1, -20, 0, 60)
-TargetsList.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-TargetsList.Text = "Нет выбранных целей"
-TargetsList.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-TargetsList.Font = Enum.Font.SourceSans
-TargetsList.TextSize = 14
-TargetsList.TextWrapped = true
-TargetsList.TextXAlignment = Enum.TextXAlignment.Left
-TargetsList.TextYAlignment = Enum.TextYAlignment.Top
-TargetsList.Parent = MainFrame
+-- ТЕКСТОВОЕ ПОЛЕ (для отображения выбранных целей)
+local TargetDisplay = Instance.new("TextLabel")
+TargetDisplay.Position = UDim2.new(0, 10, 0, 125)
+TargetDisplay.Size = UDim2.new(1, -20, 0, 60)
+TargetDisplay.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+TargetDisplay.Text = "Нет выбранных целей"
+TargetDisplay.TextColor3 = Color3.new(0, 255, 0)
+TargetDisplay.Font = Enum.Font.SourceSans
+TargetDisplay.TextSize = 12
+TargetDisplay.TextWrapped = true
+TargetDisplay.TextXAlignment = Enum.TextXAlignment.Left
+TargetDisplay.TextYAlignment = Enum.TextYAlignment.Top
+TargetDisplay.Parent = MainFrame
 
--- Переменные
-local SelectedTargets = {}
-local FlingActive = false
+-- КОЛИЧЕСТВО ЦЕЛЕЙ
+local CountLabel = Instance.new("TextLabel")
+CountLabel.Position = UDim2.new(1, -50, 0, 190)
+CountLabel.Size = UDim2.new(0, 40, 0, 20)
+CountLabel.BackgroundTransparency = 1
+CountLabel.Text = "0"
+CountLabel.TextColor3 = Color3.new(1, 1, 0)
+CountLabel.Font = Enum.Font.SourceSansBold
+CountLabel.TextSize = 18
+CountLabel.Parent = MainFrame
 
--- Функция обновления списка целей
-local function UpdateTargetsDisplay()
+-- ВЫПАДАЮЩИЙ СПИСОК ИГРОКОВ (появляется при нажатии "ДОБАВИТЬ")
+local Dropdown = Instance.new("Frame")
+Dropdown.Size = UDim2.new(0.8, 0, 0, 150)
+Dropdown.Position = UDim2.new(0.1, 0, 0, 75)
+Dropdown.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+Dropdown.BorderSizePixel = 2
+Dropdown.BorderColor3 = Color3.new(1, 1, 1)
+Dropdown.Visible = false
+Dropdown.ZIndex = 10
+Dropdown.Parent = MainFrame
+
+local DropdownTitle = Instance.new("TextLabel")
+DropdownTitle.Size = UDim2.new(1, 0, 0, 20)
+DropdownTitle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+DropdownTitle.Text = "ВЫБЕРИ ИГРОКА"
+DropdownTitle.TextColor3 = Color3.new(1, 1, 1)
+DropdownTitle.Font = Enum.Font.SourceSansBold
+DropdownTitle.TextSize = 14
+DropdownTitle.ZIndex = 10
+DropdownTitle.Parent = Dropdown
+
+local PlayerScroller = Instance.new("ScrollingFrame")
+PlayerScroller.Size = UDim2.new(1, 0, 1, -20)
+PlayerScroller.Position = UDim2.new(0, 0, 0, 20)
+PlayerScroller.BackgroundTransparency = 1
+PlayerScroller.BorderSizePixel = 0
+PlayerScroller.ScrollBarThickness = 5
+PlayerScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerScroller.ZIndex = 10
+PlayerScroller.Parent = Dropdown
+
+-- Функция обновления отображения целей
+local function UpdateDisplay()
     local names = {}
     for name, _ in pairs(SelectedTargets) do
         table.insert(names, name)
     end
     if #names == 0 then
-        TargetsList.Text = "Нет выбранных целей"
+        TargetDisplay.Text = "Нет выбранных целей"
     else
-        TargetsList.Text = "Цели: " .. table.concat(names, ", ")
+        TargetDisplay.Text = "Цели: " .. table.concat(names, ", ")
     end
+    CountLabel.Text = tostring(#names)
 end
 
--- Функция добавления игрока по нику
-local function AddTargetByName(name)
-    if name == "" then return end
-    local target = Players:FindFirstChild(name)
-    if target and target ~= Player then
-        SelectedTargets[target.Name] = target
-        UpdateTargetsDisplay()
-        InputBox.Text = ""
-    else
-        TargetsList.Text = "Игрок не найден: " .. name
+-- Функция обновления списка игроков в дропдауне
+local function UpdatePlayerList()
+    for _, child in pairs(PlayerScroller:GetChildren()) do
+        child:Destroy()
     end
+    
+    local y = 0
+    local players = Players:GetPlayers()
+    table.sort(players, function(a, b) return a.Name:lower() < b.Name:lower() end)
+    
+    for _, p in ipairs(players) do
+        if p ~= Player then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 25)
+            btn.Position = UDim2.new(0, 5, 0, y)
+            btn.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
+            btn.Text = p.Name
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Font = Enum.Font.SourceSans
+            btn.TextSize = 14
+            btn.ZIndex = 10
+            btn.Parent = PlayerScroller
+            
+            btn.MouseEnter:Connect(function()
+                btn.BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)
+            end)
+            btn.MouseLeave:Connect(function()
+                btn.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
+            end)
+            
+            btn.MouseButton1Click:Connect(function()
+                SelectedTargets[p.Name] = p
+                UpdateDisplay()
+                Dropdown.Visible = false
+            end)
+            
+            y = y + 26
+        end
+    end
+    
+    PlayerScroller.CanvasSize = UDim2.new(0, 0, 0, y + 5)
 end
 
--- Добавить по кнопке или Enter
+-- Показать/скрыть дропдаун при нажатии "ДОБАВИТЬ"
 AddBtn.MouseButton1Click:Connect(function()
-    AddTargetByName(InputBox.Text)
+    UpdatePlayerList()
+    Dropdown.Visible = not Dropdown.Visible
 end)
 
-InputBox.FocusLost:Connect(function(enter)
-    if enter then
-        AddTargetByName(InputBox.Text)
+-- Закрыть дропдаун при клике вне его
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        task.wait()
+        if Dropdown.Visible then
+            local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+            local dropPos = Dropdown.AbsolutePosition
+            local dropSize = Dropdown.AbsoluteSize
+            if mousePos.X < dropPos.X or mousePos.X > dropPos.X + dropSize.X or
+               mousePos.Y < dropPos.Y or mousePos.Y > dropPos.Y + dropSize.Y then
+                Dropdown.Visible = false
+            end
+        end
     end
 end)
 
--- Выбрать всех
+-- Кнопка "ВСЕ"
 AllBtn.MouseButton1Click:Connect(function()
     SelectedTargets = {}
     for _, p in pairs(Players:GetPlayers()) do
@@ -184,16 +247,16 @@ AllBtn.MouseButton1Click:Connect(function()
             SelectedTargets[p.Name] = p
         end
     end
-    UpdateTargetsDisplay()
+    UpdateDisplay()
 end)
 
--- Убрать всех
-RemoveAllBtn.MouseButton1Click:Connect(function()
+-- Кнопка "УБРАТЬ"
+RemoveBtn.MouseButton1Click:Connect(function()
     SelectedTargets = {}
-    UpdateTargetsDisplay()
+    UpdateDisplay()
 end)
 
--- ОРИГИНАЛЬНАЯ ФУНКЦИЯ ФЛИНГА (ИЗ ТВОЕГО ПЕРВОГО СООБЩЕНИЯ, НЕ МЕНЯЛ)
+-- ТВОЯ ОРИГИНАЛЬНАЯ ФУНКЦИЯ ФЛИНГА (НЕ ТРОГАЛ)
 local function SkidFling(TargetPlayer)
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
@@ -229,7 +292,7 @@ local function SkidFling(TargetPlayer)
         end  
         
         if THumanoid and THumanoid.Sit then  
-            TargetsList.Text = "Ошибка: " .. TargetPlayer.Name .. " сидит"
+            TargetDisplay.Text = "Ошибка: " .. TargetPlayer.Name .. " сидит"
             return  
         end  
         
@@ -309,7 +372,7 @@ local function SkidFling(TargetPlayer)
         elseif Handle then  
             SFBasePart(Handle)  
         else  
-            TargetsList.Text = "Нет частей для флинга"  
+            TargetDisplay.Text = "Нет частей для флинга"  
             return
         end  
         
@@ -334,22 +397,20 @@ local function SkidFling(TargetPlayer)
     end  
 end
 
--- Запуск флинга
+-- ФЛИНГ
 FlingBtn.MouseButton1Click:Connect(function()
     local count = 0
     for _ in pairs(SelectedTargets) do count = count + 1 end
-    
     if count == 0 then
-        TargetsList.Text = "Нет целей для флинга!"
+        TargetDisplay.Text = "Нет целей!"
         return
     end
-    
     FlingActive = true
-    TargetsList.Text = "ФЛИНГАЮ " .. count .. " целей..."
+    TargetDisplay.Text = "ФЛИНГАЮ " .. count .. " целей..."
     
     spawn(function()
         while FlingActive do
-            for name, player in pairs(SelectedTargets) do
+            for _, player in pairs(SelectedTargets) do
                 if FlingActive and player and player.Parent then
                     SkidFling(player)
                     wait(0.1)
@@ -360,17 +421,17 @@ FlingBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Остановка
+-- СТОП
 StopBtn.MouseButton1Click:Connect(function()
     FlingActive = false
-    TargetsList.Text = "Флинг остановлен"
+    TargetDisplay.Text = "Остановлено"
+    UpdateDisplay()
 end)
 
--- Закрытие
+-- ЗАКРЫТЬ
 CloseBtn.MouseButton1Click:Connect(function()
     FlingActive = false
     ScreenGui:Destroy()
 end)
 
--- Вывод в консоль, что всё загружено
-print("✅ KILASIK FLING: GUI создан в PlayerGui, ищи окно с красной рамкой!")
+print("✅ KILASIK FLING: окно с выпадающим списком загружено!")
