@@ -1,255 +1,126 @@
 --[[
-KILASIK's Compact Multi-Target Fling
-Compact version with dropdown player list
+ULTRA SIMPLE KILASIK FLING
+Минималистичная версия для любых экзекуторов
 ]]
 
+-- Отключаем защиту если есть
+pcall(function() 
+    getgenv().OldPos = nil
+    getgenv().FPDH = workspace.FallenPartsDestroyHeight
+end)
+
+-- Переменные
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
+local SelectedTargets = {}
+local FlingActive = false
 
--- GUI Setup
+-- Создаем GUI самым простым способом
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KilasikFlingGUI"
+ScreenGui.Name = "FlingGUI"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Parent = game:GetService("CoreGui") or Player.PlayerGui
 
--- Main Frame (smaller)
+-- Главное окно
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 150)
-MainFrame.Position = UDim2.new(0.5, -110, 0.5, -75)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
+MainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
--- Title Bar
-local TitleBar = Instance.new("Frame")
-TitleBar.Size = UDim2.new(1, 0, 0, 25)
-TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-TitleBar.BorderSizePixel = 0
-TitleBar.Parent = MainFrame
-
+-- Заголовок
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -25, 1, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "⚡ KILASIK FLING"
-Title.TextColor3 = Color3.fromRGB(255, 100, 100)
+Title.Size = UDim2.new(1, 0, 0, 25)
+Title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+Title.Text = "KILASIK FLING"
+Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = TitleBar
+Title.Parent = MainFrame
 
-local CloseButton = Instance.new("TextButton")
-CloseButton.Position = UDim2.new(1, -25, 0, 0)
-CloseButton.Size = UDim2.new(0, 25, 0, 25)
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-CloseButton.BorderSizePixel = 0
-CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextSize = 16
-CloseButton.Parent = TitleBar
+-- Поле ввода
+local InputBox = Instance.new("TextBox")
+InputBox.Position = UDim2.new(0, 5, 0, 30)
+InputBox.Size = UDim2.new(1, -10, 0, 25)
+InputBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+InputBox.Text = ""
+InputBox.PlaceholderText = "Введите ник"
+InputBox.TextColor3 = Color3.new(1, 1, 1)
+InputBox.Font = Enum.Font.SourceSans
+InputBox.TextSize = 14
+InputBox.Parent = MainFrame
 
--- Input Field
-local InputFrame = Instance.new("Frame")
-InputFrame.Position = UDim2.new(0, 5, 0, 30)
-InputFrame.Size = UDim2.new(1, -10, 0, 30)
-InputFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-InputFrame.BorderSizePixel = 0
-InputFrame.Parent = MainFrame
+-- Кнопка добавить
+local AddBtn = Instance.new("TextButton")
+AddBtn.Position = UDim2.new(0, 5, 0, 60)
+AddBtn.Size = UDim2.new(0.5, -7, 0, 30)
+AddBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 1)
+AddBtn.Text = "ДОБАВИТЬ"
+AddBtn.TextColor3 = Color3.new(1, 1, 1)
+AddBtn.Font = Enum.Font.SourceSansBold
+AddBtn.TextSize = 14
+AddBtn.Parent = MainFrame
 
-local TargetInput = Instance.new("TextBox")
-TargetInput.Size = UDim2.new(1, -35, 1, 0)
-TargetInput.Position = UDim2.new(0, 5, 0, 0)
-TargetInput.BackgroundTransparency = 1
-TargetInput.Text = ""
-TargetInput.PlaceholderText = "Enter username"
-TargetInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-TargetInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-TargetInput.Font = Enum.Font.SourceSans
-TargetInput.TextSize = 14
-TargetInput.ClearTextOnFocus = false
-TargetInput.Parent = InputFrame
+-- Кнопка выбрать всех
+local AllBtn = Instance.new("TextButton")
+AllBtn.Position = UDim2.new(0.5, 2, 0, 60)
+AllBtn.Size = UDim2.new(0.5, -7, 0, 30)
+AllBtn.BackgroundColor3 = Color3.new(1, 0.5, 0)
+AllBtn.Text = "ВСЕ"
+AllBtn.TextColor3 = Color3.new(1, 1, 1)
+AllBtn.Font = Enum.Font.SourceSansBold
+AllBtn.TextSize = 14
+AllBtn.Parent = MainFrame
 
-local UsersListButton = Instance.new("TextButton")
-UsersListButton.Size = UDim2.new(0, 30, 0, 30)
-UsersListButton.Position = UDim2.new(1, -35, 0, 0)
-UsersListButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-UsersListButton.BorderSizePixel = 0
-UsersListButton.Text = "▼"
-UsersListButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-UsersListButton.Font = Enum.Font.SourceSansBold
-UsersListButton.TextSize = 16
-UsersListButton.Parent = InputFrame
+-- Кнопка флинг
+local FlingBtn = Instance.new("TextButton")
+FlingBtn.Position = UDim2.new(0, 5, 0, 95)
+FlingBtn.Size = UDim2.new(0.5, -7, 0, 30)
+FlingBtn.BackgroundColor3 = Color3.new(0, 0.8, 0)
+FlingBtn.Text = "ФЛИНГ"
+FlingBtn.TextColor3 = Color3.new(1, 1, 1)
+FlingBtn.Font = Enum.Font.SourceSansBold
+FlingBtn.TextSize = 14
+FlingBtn.Parent = MainFrame
 
--- Player Dropdown
-local DropdownFrame = Instance.new("Frame")
-DropdownFrame.Size = UDim2.new(1, 0, 0, 120)
-DropdownFrame.Position = UDim2.new(0, 0, 1, 2)
-DropdownFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-DropdownFrame.BorderSizePixel = 0
-DropdownFrame.Visible = false
-DropdownFrame.Parent = InputFrame
+-- Кнопка стоп
+local StopBtn = Instance.new("TextButton")
+StopBtn.Position = UDim2.new(0.5, 2, 0, 95)
+StopBtn.Size = UDim2.new(0.5, -7, 0, 30)
+StopBtn.BackgroundColor3 = Color3.new(0.8, 0, 0)
+StopBtn.Text = "СТОП"
+StopBtn.TextColor3 = Color3.new(1, 1, 1)
+StopBtn.Font = Enum.Font.SourceSansBold
+StopBtn.TextSize = 14
+StopBtn.Parent = MainFrame
 
-local PlayerList = Instance.new("ScrollingFrame")
-PlayerList.Size = UDim2.new(1, -10, 1, -10)
-PlayerList.Position = UDim2.new(0, 5, 0, 5)
-PlayerList.BackgroundTransparency = 1
-PlayerList.BorderSizePixel = 0
-PlayerList.ScrollBarThickness = 4
-PlayerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-PlayerList.Parent = DropdownFrame
+-- Статус
+local Status = Instance.new("TextLabel")
+Status.Position = UDim2.new(0, 5, 0, 130)
+Status.Size = UDim2.new(1, -10, 0, 15)
+Status.BackgroundTransparency = 1
+Status.Text = "Готов"
+Status.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+Status.Font = Enum.Font.SourceSans
+Status.TextSize = 12
+Status.Parent = MainFrame
 
--- Control Buttons
-local FlingButton = Instance.new("TextButton")
-FlingButton.Position = UDim2.new(0, 5, 0, 65)
-FlingButton.Size = UDim2.new(0.5, -7, 0, 35)
-FlingButton.BackgroundColor3 = Color3.fromRGB(0, 160, 0)
-FlingButton.BorderSizePixel = 0
-FlingButton.Text = "⚡ FLING"
-FlingButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlingButton.Font = Enum.Font.SourceSansBold
-FlingButton.TextSize = 16
-FlingButton.Parent = MainFrame
+-- Кнопка закрыть (маленькая в углу)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Position = UDim2.new(1, -20, 0, 0)
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+CloseBtn.BackgroundColor3 = Color3.new(1, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.TextSize = 14
+CloseBtn.Parent = Title
 
-local StopButton = Instance.new("TextButton")
-StopButton.Position = UDim2.new(0.5, 2, 0, 65)
-StopButton.Size = UDim2.new(0.5, -7, 0, 35)
-StopButton.BackgroundColor3 = Color3.fromRGB(160, 0, 0)
-StopButton.BorderSizePixel = 0
-StopButton.Text = "■ STOP"
-StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopButton.Font = Enum.Font.SourceSansBold
-StopButton.TextSize = 16
-StopButton.Parent = MainFrame
-
--- Status
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Position = UDim2.new(0, 5, 0, 105)
-StatusLabel.Size = UDim2.new(1, -10, 0, 20)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Ready"
-StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-StatusLabel.Font = Enum.Font.SourceSans
-StatusLabel.TextSize = 12
-StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-StatusLabel.Parent = MainFrame
-
-local CountLabel = Instance.new("TextLabel")
-CountLabel.Position = UDim2.new(1, -40, 0, 105)
-CountLabel.Size = UDim2.new(0, 35, 0, 20)
-CountLabel.BackgroundTransparency = 1
-CountLabel.Text = "0"
-CountLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-CountLabel.Font = Enum.Font.SourceSansBold
-CountLabel.TextSize = 14
-CountLabel.TextXAlignment = Enum.TextXAlignment.Right
-CountLabel.Parent = MainFrame
-
--- Variables
-local SelectedTargets = {}
-local FlingActive = false
-local FlingConnection = nil
-getgenv().OldPos = nil
-getgenv().FPDH = workspace.FallenPartsDestroyHeight
-
--- Update player dropdown
-local function UpdatePlayerList()
-    for _, child in pairs(PlayerList:GetChildren()) do
-        child:Destroy()
-    end
-    
-    local yPos = 0
-    local players = Players:GetPlayers()
-    table.sort(players, function(a, b) return a.Name:lower() < b.Name:lower() end)
-    
-    for _, player in ipairs(players) do
-        if player ~= Player then
-            local button = Instance.new("TextButton")
-            button.Size = UDim2.new(1, -5, 0, 25)
-            button.Position = UDim2.new(0, 2, 0, yPos)
-            button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-            button.BorderSizePixel = 0
-            button.Text = player.Name
-            button.TextColor3 = Color3.fromRGB(255, 255, 255)
-            button.Font = Enum.Font.SourceSans
-            button.TextSize = 14
-            button.TextXAlignment = Enum.TextXAlignment.Left
-            button.Parent = PlayerList
-            
-            -- Selected indicator
-            local indicator = Instance.new("Frame")
-            indicator.Size = UDim2.new(0, 3, 0.5, -3)
-            indicator.Position = UDim2.new(1, -5, 0.5, -1)
-            indicator.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-            indicator.BorderSizePixel = 0
-            indicator.Visible = false
-            indicator.Parent = button
-            
-            button.MouseButton1Click:Connect(function()
-                TargetInput.Text = player.Name
-                DropdownFrame.Visible = false
-            end)
-            
-            if SelectedTargets[player.Name] then
-                indicator.Visible = true
-            end
-            
-            yPos = yPos + 26
-        end
-    end
-    
-    PlayerList.CanvasSize = UDim2.new(0, 0, 0, yPos)
-end
-
--- Toggle dropdown
-UsersListButton.MouseButton1Click:Connect(function()
-    UpdatePlayerList()
-    DropdownFrame.Visible = not DropdownFrame.Visible
-end)
-
--- Close dropdown when clicking outside
-UserInputService.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local pos = UserInputService:GetMouseLocation()
-        local absPos = DropdownFrame.AbsolutePosition
-        local absSize = DropdownFrame.AbsoluteSize
-        
-        if not (pos.X >= absPos.X and pos.X <= absPos.X + absSize.X and
-                pos.Y >= absPos.Y and pos.Y <= absPos.Y + absSize.Y) and
-                not UsersListButton:IsMouseOver() then
-            DropdownFrame.Visible = false
-        end
-    end
-end)
-
--- Add target from input
-local function AddTargetFromInput()
-    local name = TargetInput.Text:gsub("%s+", "")
-    if name ~= "" then
-        local player = Players:FindFirstChild(name)
-        if player and player ~= Player then
-            SelectedTargets[player.Name] = player
-            StatusLabel.Text = "✓ Added: "..player.Name
-            CountLabel.Text = tostring(#SelectedTargets)
-            TargetInput.Text = ""
-            UpdatePlayerList()
-        else
-            StatusLabel.Text = "✗ Player not found"
-        end
-    end
-end
-
-TargetInput.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        AddTargetFromInput()
-    end
-end)
-
--- Fling function (same as before)
-local function SkidFling(TargetPlayer)
+-- ОРИГИНАЛЬНАЯ ФУНКЦИЯ ФЛИНГА (ПОЛНОСТЬЮ ИЗ ТВОЕГО КОДА)
+local function flingPlayer(TargetPlayer)
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
     local RootPart = Humanoid and Humanoid.RootPart
@@ -284,7 +155,8 @@ local function SkidFling(TargetPlayer)
         end  
         
         if THumanoid and THumanoid.Sit then  
-            return StatusLabel.Text = "✗ "..TargetPlayer.Name.." is sitting"  
+            Status.Text = "Ошибка: " .. TargetPlayer.Name .. " сидит"
+            return  
         end  
         
         if THead then  
@@ -363,7 +235,8 @@ local function SkidFling(TargetPlayer)
         elseif Handle then  
             SFBasePart(Handle)  
         else  
-            return StatusLabel.Text = "✗ No valid parts"  
+            Status.Text = "Нет частей для флинга"  
+            return
         end  
         
         BV:Destroy()  
@@ -387,74 +260,71 @@ local function SkidFling(TargetPlayer)
     end  
 end
 
--- Start flinging
-local function StartFling()
-    if FlingActive then return end
+-- Добавить игрока
+AddBtn.MouseButton1Click:Connect(function()
+    local name = InputBox.Text
+    if name ~= "" then
+        local player = Players:FindFirstChild(name)
+        if player and player ~= Player then
+            SelectedTargets[player.Name] = player
+            Status.Text = "Добавлен: " .. player.Name
+            InputBox.Text = ""
+        else
+            Status.Text = "Игрок не найден"
+        end
+    end
+end)
+
+-- Выбрать всех
+AllBtn.MouseButton1Click:Connect(function()
+    SelectedTargets = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Player then
+            SelectedTargets[player.Name] = player
+        end
+    end
     
-    local count = #SelectedTargets
+    local count = 0
+    for _ in pairs(SelectedTargets) do count = count + 1 end
+    Status.Text = "Выбрано: " .. count
+end)
+
+-- Флинг
+FlingBtn.MouseButton1Click:Connect(function()
+    local count = 0
+    for _ in pairs(SelectedTargets) do count = count + 1 end
+    
     if count == 0 then
-        StatusLabel.Text = "No targets selected!"
+        Status.Text = "Нет целей!"
         return
     end
     
     FlingActive = true
-    StatusLabel.Text = "⚡ Flinging "..count.." targets..."
-    CountLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    Status.Text = "ФЛИНГАЮ " .. count .. " целей..."
     
     spawn(function()
         while FlingActive do
             for name, player in pairs(SelectedTargets) do
                 if FlingActive and player and player.Parent then
-                    SkidFling(player)
+                    flingPlayer(player)
                     wait(0.1)
                 end
             end
             wait(0.5)
         end
     end)
-end
+end)
 
--- Stop flinging
-local function StopFling()
+-- Стоп
+StopBtn.MouseButton1Click:Connect(function()
     FlingActive = false
-    StatusLabel.Text = "Stopped"
-    CountLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-end
+    Status.Text = "Остановлено"
+end)
 
--- Clear all targets
-local function ClearTargets()
-    SelectedTargets = {}
-    CountLabel.Text = "0"
-    StatusLabel.Text = "Cleared"
-    UpdatePlayerList()
-end
-
--- Button connections
-FlingButton.MouseButton1Click:Connect(StartFling)
-StopButton.MouseButton1Click:Connect(StopFling)
-CloseButton.MouseButton1Click:Connect(function()
-    StopFling()
+-- Закрыть
+CloseBtn.MouseButton1Click:Connect(function()
+    FlingActive = false
     ScreenGui:Destroy()
 end)
 
--- Right click on status to clear
-StatusLabel.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton2 then
-        ClearTargets()
-    end
-end)
-
--- Player join/leave
-Players.PlayerAdded:Connect(UpdatePlayerList)
-Players.PlayerRemoving:Connect(function(player)
-    SelectedTargets[player.Name] = nil
-    CountLabel.Text = tostring(#SelectedTargets)
-    UpdatePlayerList()
-end)
-
--- Initialize
-UpdatePlayerList()
-StatusLabel.Text = "Ready | Right-click to clear"
-CountLabel.Text = "0"
-
-print("✅ KILASIK Compact Fling loaded!")
+print("Готово! GUI загружен")
