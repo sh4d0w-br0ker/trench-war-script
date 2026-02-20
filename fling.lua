@@ -1,5 +1,5 @@
 --[[
-KILASIK FLING - выпадающий список с закрытием и отображением целей
+SPYFLING - выпадающий список с закрытием и отображением целей
 ]]
 
 pcall(function() 
@@ -15,7 +15,7 @@ local FlingActive = false
 repeat wait() until Player and Player.Parent
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KILASIK_FLING"
+ScreenGui.Name = "SPYFLING"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
@@ -32,7 +32,7 @@ MainFrame.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundColor3 = Color3.new(0.6, 0, 0)
-Title.Text = "⚡ KILASIK FLING ⚡"
+Title.Text = "📓 SpyFling 📓"
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
