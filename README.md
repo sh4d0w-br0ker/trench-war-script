@@ -10,6 +10,11 @@ script 2.0:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/menu.lua",
 true))()
 ```
+fling Gui:
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/menu.lua",
+true))()
+```
 using: get your pistol
 and press the kill button and that's it. If you need to turn it off, press the kill button again.
 
