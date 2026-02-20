@@ -160,7 +160,7 @@ Dropdown.Parent = MainFrame
 
 local DropdownTitle = Instance.new("TextLabel")
 DropdownTitle.Size = UDim2.new(1, 0, 0, 20)
-DropdownTitle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+DropdownTitle.BackgroundColor3 = Color3.new(0.5, 0, 0.5)
 DropdownTitle.Text = "ВЫБЕРИ ИГРОКА"
 DropdownTitle.TextColor3 = Color3.new(1, 1, 1)
 DropdownTitle.Font = Enum.Font.SourceSansBold
