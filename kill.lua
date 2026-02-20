@@ -46,7 +46,7 @@ Exit.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
 Exit.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", Exit)
 
--- Логика убийства (на базе твоего RemoteEvent)
+-- Логика убийства
 local function doKill()
     local tool = LocalPlayer.Character:FindFirstChild("Pistol")
     if not tool then return end
@@ -58,7 +58,7 @@ local function doKill()
             local hum =  p.Character.Humanoid
              local root = p.Character:FindFirstChild("HumanoidRootPart")
              if hum.Health > 0 and root then
-                 -- Отправляем пачку урона (аргументы из твоего лога)
+                 -- Отправляем пачку урона 
                  remote:FireServer(hum, 100, {9.17, root.CFrame})
              end
          end
