@@ -5,6 +5,7 @@ script:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/kill.lua",
 true))()
 ```
+script 2.0:
 ```lua2.0
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/menu.lua",
 true))()
