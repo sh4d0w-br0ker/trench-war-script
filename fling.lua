@@ -72,7 +72,7 @@ local AddBtn = Instance.new("TextButton")
 AddBtn.Position = UDim2.new(0, 10, 0, 10)
 AddBtn.Size = UDim2.new(0.3, -5, 0, 30)
 AddBtn.BackgroundColor3 = Color3.new(0, 0.5, 1)
-AddBtn.Text = "ДОБАВИТЬ"
+AddBtn.Text = "userLIST"
 AddBtn.TextColor3 = Color3.new(1, 1, 1)
 AddBtn.Font = Enum.Font.SourceSansBold
 AddBtn.TextSize = 12
@@ -83,7 +83,7 @@ local AllBtn = Instance.new("TextButton")
 AllBtn.Position = UDim2.new(0.35, 0, 0, 10)
 AllBtn.Size = UDim2.new(0.3, -5, 0, 30)
 AllBtn.BackgroundColor3 = Color3.new(1, 0.5, 0)
-AllBtn.Text = "ВСЕ"
+AllBtn.Text = "AllUsers"
 AllBtn.TextColor3 = Color3.new(1, 1, 1)
 AllBtn.Font = Enum.Font.SourceSansBold
 AllBtn.TextSize = 12
@@ -94,7 +94,7 @@ local RemoveBtn = Instance.new("TextButton")
 RemoveBtn.Position = UDim2.new(0.7, 0, 0, 10)
 RemoveBtn.Size = UDim2.new(0.3, -10, 0, 30)
 RemoveBtn.BackgroundColor3 = Color3.new(0.8, 0, 0)
-RemoveBtn.Text = "УБРАТЬ"
+RemoveBtn.Text = "УБРАТЬ/unAllUsers"
 RemoveBtn.TextColor3 = Color3.new(1, 1, 1)
 RemoveBtn.Font = Enum.Font.SourceSansBold
 RemoveBtn.TextSize = 12
@@ -105,7 +105,7 @@ local FlingBtn = Instance.new("TextButton")
 FlingBtn.Position = UDim2.new(0, 10, 0, 50)
 FlingBtn.Size = UDim2.new(0.45, -5, 0, 35)
 FlingBtn.BackgroundColor3 = Color3.new(0, 0.8, 0)
-FlingBtn.Text = "🚀 ФЛИНГ"
+FlingBtn.Text = "💣 fling"
 FlingBtn.TextColor3 = Color3.new(1, 1, 1)
 FlingBtn.Font = Enum.Font.SourceSansBold
 FlingBtn.TextSize = 14
@@ -116,7 +116,7 @@ local StopBtn = Instance.new("TextButton")
 StopBtn.Position = UDim2.new(0.5, 5, 0, 50)
 StopBtn.Size = UDim2.new(0.45, -15, 0, 35)
 StopBtn.BackgroundColor3 = Color3.new(0.8, 0, 0)
-StopBtn.Text = "⏹️ СТОП"
+StopBtn.Text = "⏹️ Stop"
 StopBtn.TextColor3 = Color3.new(1, 1, 1)
 StopBtn.Font = Enum.Font.SourceSansBold
 StopBtn.TextSize = 14
@@ -127,7 +127,7 @@ local TargetDisplay = Instance.new("TextLabel")
 TargetDisplay.Position = UDim2.new(0, 10, 0, 95)
 TargetDisplay.Size = UDim2.new(1, -20, 0, 60)
 TargetDisplay.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-TargetDisplay.Text = "Нет выбранных целей"
+TargetDisplay.Text = "Not users..."
 TargetDisplay.TextColor3 = Color3.new(0, 255, 0)
 TargetDisplay.Font = Enum.Font.SourceSans
 TargetDisplay.TextSize = 12
@@ -161,7 +161,7 @@ Dropdown.Parent = MainFrame
 local DropdownTitle = Instance.new("TextLabel")
 DropdownTitle.Size = UDim2.new(1, 0, 0, 20)
 DropdownTitle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-DropdownTitle.Text = "ВЫБЕРИ ИГРОКА"
+DropdownTitle.Text = "ВЫБЕРИ ИГРОКА/click on nick"
 DropdownTitle.TextColor3 = Color3.new(1, 1, 1)
 DropdownTitle.Font = Enum.Font.SourceSansBold
 DropdownTitle.TextSize = 14
@@ -185,9 +185,9 @@ local function UpdateTargetsDisplay()
         table.insert(names, name)
     end
     if #names == 0 then
-        TargetDisplay.Text = "Нет выбранных целей"
+        TargetDisplay.Text = "Not users..."
     else
-        TargetDisplay.Text = "Цели: " .. table.concat(names, ", ")
+        TargetDisplay.Text = "Users: " .. table.concat(names, ", ")
     end
     CountLabel.Text = tostring(#names)
 end
@@ -471,4 +471,4 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
-print("✅ KILASIK FLING: список закрывается, цели отображаются!")
+print("✅ SpyFling: список закрывается, цели отображаются!")
