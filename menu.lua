@@ -3,12 +3,11 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
-if CoreGui:FindFirstChild("Screwed_Menu") then CoreGui.Screwed_Menu:Destroy() end
+if CoreGui:FindFirstChild("Fixed_Ultimate_Menu") then CoreGui.Fixed_Ultimate_Menu:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui", CoreGui)
-ScreenGui.Name = "Screwed_Menu"
+ScreenGui.Name = "Fixed_Ultimate_Menu"
 
--- ГЛАВНАЯ ПЛАНКА "MENU"
 local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.new(0, 220, 0, 35)
 Main.Position = UDim2.new(0.5, -110, 0.1, 0)
@@ -16,6 +15,7 @@ Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
+Main.ClipsDescendants = true
 Instance.new("UICorner", Main)
 
 local MainTitle = Instance.new("TextLabel", Main)
@@ -36,21 +36,30 @@ MainToggle.TextColor3 = Color3.new(1, 1, 1)
 MainToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 Instance.new("UICorner", MainToggle)
 
--- КОНТЕЙНЕР ДЛЯ ВСЕГО ЧТО НИЖЕ (Склеенный блок)
 local Holder = Instance.new("Frame", Main)
 Holder.Position = UDim2.new(0, 0, 0, 40)
-Holder.Size = UDim2.new(1, 0, 0, 0)
+Holder.Size = UDim2.new(1, 0, 0, 80) -- Дал начальный размер для двух кнопок
 Holder.BackgroundTransparency = 1
 Holder.Visible = false
-Holder.ClipsDescendants = true
 
 local HolderList = Instance.new("UIListLayout", Holder)
-HolderList.Padding = UDim.new(0, 2) -- Склейка плотная
+HolderList.Padding = UDim.new(0, 5)
+HolderList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- ФУНКЦИЯ СОЗДАНИЯ ПОД-МЕНЮ (Kill / Esp)
+local function UpdateSizes()
+    local h = 0
+    for _, v in pairs(Holder:GetChildren()) do
+        if v:IsA("Frame") then h = h + v.Size.Y.Offset + 5 end
+    end
+    Holder.Size = UDim2.new(1, 0, 0, h)
+    if Holder.Visible then
+        Main.Size = UDim2.new(0, 220, 0, h + 45)
+    end
+end
+
 local function CreateSub(name)
     local SubFrame = Instance.new("Frame", Holder)
-    SubFrame.Size = UDim2.new(1, 0, 0, 35)
+    SubFrame.Size = UDim2.new(0.95, 0, 0, 35)
     SubFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     SubFrame.BorderSizePixel = 0
     SubFrame.ClipsDescendants = true
@@ -58,7 +67,7 @@ local function CreateSub(name)
 
     local SubBtn = Instance.new("TextButton", SubFrame)
     SubBtn.Size = UDim2.new(1, 0, 0, 35)
-    SubBtn.Text = name .. "          <"
+    SubBtn.Text = name .. "  <"
     SubBtn.TextColor3 = Color3.new(1, 1, 1)
     SubBtn.BackgroundTransparency = 1
     SubBtn.Font = Enum.Font.SourceSansBold
@@ -71,33 +80,26 @@ local function CreateSub(name)
     CL.Padding = UDim.new(0, 5)
     CL.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-    local isOpen = false
+    local subOpen = false
     SubBtn.MouseButton1Click:Connect(function()
-        isOpen = not isOpen
-        SubFrame.Size = isOpen and UDim2.new(1, 0, 0, 285) or UDim2.new(1, 0, 0, 35)
-        SubBtn.Text = name .. (isOpen and "          v" or "          <")
-        
-        -- Авто-подгон высоты холдера
-        local h = 0
-        for _, v in pairs(Holder:GetChildren()) do
-            if v:IsA("Frame") then h = h + v.Size.Y.Offset + 2 end
-        end
-        Holder.Size = UDim2.new(1, 0, 0, h)
-        Main.Size = UDim2.new(0, 220, 0, h + 40)
+        subOpen = not subOpen
+        SubFrame.Size = subOpen and UDim2.new(0.95, 0, 0, 285) or UDim2.new(0.95, 0, 0, 35)
+        SubBtn.Text = name .. (subOpen and "  v" or "  <")
+        UpdateSizes()
     end)
     return Content
 end
 
--- Секции
 local KillUI = CreateSub("kill Gui")
 local EspUI = CreateSub("Esp Gui")
 
--- НАПОЛНЕНИЕ KILL
+-- ЭЛЕМЕНТЫ KILL
 local TargetInput = Instance.new("TextBox", KillUI)
 TargetInput.Size = UDim2.new(0.9, 0, 0, 30)
 TargetInput.PlaceholderText = "Username..."
 TargetInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 TargetInput.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", TargetInput)
 
 local KillBtn = Instance.new("TextButton", KillUI)
 KillBtn.Size = UDim2.new(0.9, 0, 0, 35)
@@ -113,35 +115,30 @@ AuraBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 AuraBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", AuraBtn)
 
--- НАПОЛНЕНИЕ ESP
+-- ЭЛЕМЕНТЫ ESP
 local EspBtn = Instance.new("TextButton", EspUI)
 EspBtn.Size = UDim2.new(0.9, 0, 0, 35)
-EspBtn.Text = "ESP All: OFF"
+EspBtn.Text = "ESP: OFF"
 EspBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 EspBtn.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", EspBtn)
 
 local Scroll = Instance.new("ScrollingFrame", EspUI)
-Scroll.Size = UDim2.new(0.9, 0, 0, 100)
+Scroll.Size = UDim2.new(0.9, 0, 0, 120)
 Scroll.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Scroll.CanvasSize = UDim2.new(0,0,5,0)
 Instance.new("UIListLayout", Scroll)
 
--- ЛОГИКА ГЛАВНОГО MENU
 MainToggle.MouseButton1Click:Connect(function()
-    local show = not Holder.Visible
-    Holder.Visible = show
-    MainToggle.Text = show and "v" or "<"
-    if not show then 
+    Holder.Visible = not Holder.Visible
+    MainToggle.Text = Holder.Visible and "v" or "<"
+    if not Holder.Visible then 
         Main.Size = UDim2.new(0, 220, 0, 35)
     else
-        local h = 0
-        for _, v in pairs(Holder:GetChildren()) do if v:IsA("Frame") then h = h + v.Size.Y.Offset + 2 end end
-        Main.Size = UDim2.new(0, 220, 0, h + 40)
+        UpdateSizes()
     end
 end)
 
--- ФУНКЦИОНАЛ
 local function fire(h, r)
     local p = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Pistol")
     if p and p:FindFirstChild("RemoteEvent") then p.RemoteEvent:FireServer(h, 100, {9.17, r.CFrame}) end
@@ -173,18 +170,18 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-local Esp = false
+local EspOn = false
 EspBtn.MouseButton1Click:Connect(function()
-    Esp = not Esp
-    EspBtn.Text = Esp and "ESP: ON" or "ESP: OFF"
-    EspBtn.BackgroundColor3 = Esp and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60,60,60)
+    EspOn = not EspOn
+    EspBtn.Text = EspOn and "ESP: ON" or "ESP: OFF"
+    EspBtn.BackgroundColor3 = EspOn and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(60,60,60)
 end)
 
 RunService.RenderStepped:Connect(function()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local hi = p.Character:FindFirstChild("Highlight")
-            if Esp or (TargetInput.Text ~= "" and p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower()) then
+            if EspOn or (TargetInput.Text ~= "" and p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower()) then
                 if not hi then hi = Instance.new("Highlight", p.Character) end
                 hi.FillColor = p.TeamColor.Color
             elseif hi then hi:Destroy() end
@@ -207,5 +204,4 @@ local function up()
 end
 spawn(function() while wait(5) do up() end end)
 up()
-
-print("One Menu - Two Sections - All Works.")
+UpdateSizes()
