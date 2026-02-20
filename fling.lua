@@ -43,7 +43,7 @@ local FoldBtn = Instance.new("TextButton")
 FoldBtn.Size = UDim2.new(0, 30, 0, 30)
 FoldBtn.Position = UDim2.new(0, 0, 0, 0)
 FoldBtn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-FoldBtn.Text = "<"   -- <--- ИЗМЕНЕНО (было "−")
+FoldBtn.Text = "<"
 FoldBtn.TextColor3 = Color3.new(1, 1, 1)
 FoldBtn.Font = Enum.Font.SourceSansBold
 FoldBtn.TextSize = 20
@@ -188,11 +188,11 @@ FoldBtn.MouseButton1Click:Connect(function()
     if isFolded then
         MainFrame.Size = foldedSize
         Content.Visible = false
-        FoldBtn.Text = ">"   -- <--- ИЗМЕНЕНО (было "+")
+        FoldBtn.Text = ">"
     else
         MainFrame.Size = fullSize
         Content.Visible = true
-        FoldBtn.Text = "<"   -- <--- ИЗМЕНЕНО (было "−")
+        FoldBtn.Text = "<"
     end
 end)
 
