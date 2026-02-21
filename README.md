@@ -6,11 +6,16 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-
 true))()
 ```
 script 2.0:
-```lua2.0
+```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/menu.lua",
 true))()
 ```
 fling Gui:
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/fling.lua",
+true))()
+```
+Teleport Gui:
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/fling.lua",
 true))()
