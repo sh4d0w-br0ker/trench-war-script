@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local LPlayer = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
 
--- Видаляємо стару копію
+-- test
 if CoreGui:FindFirstChild("KillGui_Fixed") then
     CoreGui.KillGui_Fixed:Destroy()
 end
@@ -23,14 +23,14 @@ MainFrame.Parent = ScreenGui
 local Input = Instance.new("TextBox")
 Input.Size = UDim2.new(0, 180, 0, 40)
 Input.Position = UDim2.new(0, 10, 0, 10)
-Input.PlaceholderText = "Ім'я гравця..."
+Input.PlaceholderText = "user player"
 Input.Text = ""
 Input.Parent = MainFrame
 
 local KillBtn = Instance.new("TextButton")
 KillBtn.Size = UDim2.new(0, 180, 0, 40)
 KillBtn.Position = UDim2.new(0, 10, 0, 60)
-KillBtn.Text = "ВБИТИ (2 сек)"
+KillBtn.Text = "kill"
 KillBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 KillBtn.TextColor3 = Color3.new(1, 1, 1)
 KillBtn.Parent = MainFrame
@@ -63,27 +63,27 @@ KillBtn.MouseButton1Click:Connect(function()
         local tool = LPlayer.Backpack:FindFirstChildOfClass("Tool") or char:FindFirstChildOfClass("Tool")
         
         if tool then
-            -- 1. Беремо предмет
+            -- 1. test2
             tool.Parent = char
             
-            -- 2. Телепорт СЗАДУ ГРАВЦЯ (CFrame * 3 по осі Z)
+            -- 2. test3
             hrp.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
             
-            -- ЧЕКАЄМО 2 СЕКУНДИ
+            -- test4
             task.wait(2)
             
-            -- 3. Телепорт У СМЕРТЕЛЬНУ ЗОНУ
+            -- 3. test5
             hrp.CFrame = TargetPos
             task.wait(0.3)
             
-            -- 4. Викидаємо предмет
+            -- 4. test6
             tool.Parent = LPlayer.Backpack
             
-            -- 5. Повернення назад
+            -- 5. test7
             task.wait(0.1)
             hrp.CFrame = oldPos
         else
-            warn("Візьми тул у руки або інвентар!")
+            warn("Диван возьми сам знаешь где")
         end
     end
 end)
