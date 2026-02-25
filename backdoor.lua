@@ -5,85 +5,96 @@ local LogsBtn = Instance.new("TextButton")
 local LogsFrame = Instance.new("ScrollingFrame")
 local UIListLayout = Instance.new("UIListLayout")
 
--- Настройка GUI
-ScreenGui.Name = "BackdoorScanner_V1"
+ScreenGui.Name = "Advanced_Scanner_V2"
 ScreenGui.Parent = game:GetService("CoreGui")
 
-MainFrame.Name = "Main"
+-- Главная панелька
+MainFrame.Name = "ControlPanel"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 150, 0, 100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.02, 0, 0.4, 0)
+MainFrame.Size = UDim2.new(0, 160, 0, 110)
 MainFrame.Active = true
-MainFrame.Draggable = true -- Можно двигать мышкой
+MainFrame.Draggable = true
 
-ScanBtn.Name = "ScanBtn"
-ScanBtn.Parent = MainFrame
-ScanBtn.Text = "START SCAN"
-ScanBtn.Size = UDim2.new(1, -10, 0, 40)
-ScanBtn.Position = UDim2.new(0, 5, 0, 5)
-ScanBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+local function createBtn(name, text, pos, color)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = MainFrame
+    btn.Text = text
+    btn.Size = UDim2.new(1, -10, 0, 45)
+    btn.Position = pos
+    btn.BackgroundColor3 = color
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 18
+    return btn
+end
 
-LogsBtn.Name = "LogsBtn"
-LogsBtn.Parent = MainFrame
-LogsBtn.Text = "LOGS (0)"
-LogsBtn.Size = UDim2.new(1, -10, 0, 40)
-LogsBtn.Position = UDim2.new(0, 5, 0, 50)
-LogsBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 150)
+ScanBtn = createBtn("ScanBtn", "ЗАПУСТИТЬ ПОИСК", UDim2.new(0, 5, 0, 5), Color3.fromRGB(46, 204, 113))
+LogsBtn = createBtn("LogsBtn", "ЛОГИ (0)", UDim2.new(0, 5, 0, 55), Color3.fromRGB(52, 152, 219))
 
 -- Окно Логов
 LogsFrame.Name = "LogsFrame"
 LogsFrame.Parent = ScreenGui
-LogsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-LogsFrame.Position = UDim2.new(0.2, 0, 0.1, 0)
-LogsFrame.Size = UDim2.new(0, 300, 0, 400)
+LogsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LogsFrame.Position = UDim2.new(0.15, 0, 0.3, 0)
+LogsFrame.Size = UDim2.new(0, 450, 0, 350)
 LogsFrame.Visible = false
-LogsFrame.ScrollBarThickness = 5
+LogsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+LogsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 UIListLayout.Parent = LogsFrame
-UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.Padding = UDim.new(0, 2)
 
-local foundItems = {}
+local logsCount = 0
 
--- Функция добавления лога
 local function addLog(text, color)
-    local logLabel = Instance.new("TextLabel")
+    logsCount = logsCount + 1
+    local logLabel = Instance.new("TextButton") -- Сделал кнопкой, чтоб потом можно было кликать
     logLabel.Parent = LogsFrame
-    logLabel.Size = UDim2.new(1, 0, 0, 30)
-    logLabel.BackgroundTransparency = 0.5
-    logLabel.BackgroundColor3 = color or Color3.fromRGB(40, 40, 40)
+    logLabel.Size = UDim2.new(1, -10, 0, 35)
+    logLabel.BackgroundColor3 = color
+    logLabel.Text = " [" .. os.date("%X") .. "] " .. text
     logLabel.TextColor3 = Color3.new(1, 1, 1)
-    logLabel.Text = text
-    logLabel.TextScaled = true
-    LogsBtn.Text = "LOGS (" .. #foundItems .. ")"
+    logLabel.TextXAlignment = Enum.TextXAlignment.Left
+    logLabel.TextWrapped = true
+    logLabel.Font = Enum.Font.Code
+    logLabel.TextSize = 14
+    LogsBtn.Text = "ЛОГИ (" .. logsCount .. ")"
 end
 
--- Логика сканирования
 ScanBtn.MouseButton1Click:Connect(function()
-    foundItems = {}
-    for i,v in pairs(LogsFrame:GetChildren()) do if v:IsA("TextLabel") then v:Destroy() end end
-    addLog("--- SCANNING ---", Color3.fromRGB(100, 100, 100))
-    
+    logsCount = 0
+    for _, v in pairs(LogsFrame:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+    addLog("--- СКАНИРОВАНИЕ ЗАПУЩЕНО ---", Color3.fromRGB(80, 80, 80))
+
     for _, obj in pairs(game:GetDescendants()) do
         pcall(function()
             if obj:IsA("ModuleScript") then
-                local s = obj.Source:lower()
-                if s:find("require%s*%(%s*%d+%s*%)") then
-                    table.insert(foundItems, obj)
-                    addLog("ID: " .. s:match("%d+") .. " in " .. obj.Name, Color3.fromRGB(200, 50, 50))
-                elseif s:find("getfenv") or s:find("loadstring") then
-                    table.insert(foundItems, obj)
-                    addLog("Hidden Code: " .. obj.Name, Color3.fromRGB(200, 150, 50))
+                local src = obj.Source
+                
+                -- Ищем четкий require с цифрами (КРАСНЫЙ)
+                local reqMatch = src:match("require%s*%(%s*%d+%s*%)")
+                if reqMatch then
+                    addLog("КРИТ: " .. reqMatch .. " в " .. obj.Name, Color3.fromRGB(150, 0, 0))
+                
+                -- Ищем подозрительный require с переменными (ЖЕЛТЫЙ)
+                elseif src:match("require%s*%(%s*[^%d]") then
+                    local piece = src:match("require%s*%b()") or "require(...)"
+                    addLog("ПОДОЗРИТЕЛЬНО: " .. piece, Color3.fromRGB(150, 150, 0))
+                
+                -- Ищем обфускацию (ЖЕЛТЫЙ)
+                elseif src:match("getfenv") or src:match("loadstring") or src:match("\\%d%d%d") then
+                    addLog("ОБФУСКАЦИЯ: " .. obj.Name, Color3.fromRGB(100, 100, 0))
                 end
-            elseif obj:IsA("RemoteEvent") and (#obj.Name <= 2 or obj.Name:lower():find("backdoor")) then
-                addLog("SUS REMOTE: " .. obj.Name, Color3.fromRGB(50, 100, 200))
             end
         end)
     end
-    addLog("--- FINISHED ---", Color3.fromRGB(100, 100, 100))
+    addLog("--- СКАНИРОВАНИЕ ЗАВЕРШЕНО ---", Color3.fromRGB(80, 80, 80))
 end)
 
--- Переключение окна логов
 LogsBtn.MouseButton1Click:Connect(function()
     LogsFrame.Visible = not LogsFrame.Visible
 end)
