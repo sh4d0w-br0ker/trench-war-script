@@ -25,6 +25,11 @@ Brookhaven kill Gui
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/Brookhaven.lua",
 true))()
 ```
+backdoor-scanner:
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/backdoor.lua",
+true))()
+```
 using: get your pistol
 and press the kill button and that's it. If you need to turn it off, press the kill button again.
 
