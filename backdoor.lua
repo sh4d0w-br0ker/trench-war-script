@@ -1,134 +1,108 @@
+--[[ 
+  V4 BUTCHER EDITION
+  Ищет даже самые кривые require
+]]
+
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
-local ProgressFrame = Instance.new("Frame")
-local ProgressBar = Instance.new("Frame")
 local ProgressText = Instance.new("TextLabel")
 local ScanBtn = Instance.new("TextButton")
 local LogsBtn = Instance.new("TextButton")
 local LogsFrame = Instance.new("ScrollingFrame")
 local UIListLayout = Instance.new("UIListLayout")
 
-ScreenGui.Name = "Scanner_Pro_V3"
+ScreenGui.Name = "ButcherScanner_V4"
 ScreenGui.Parent = game:GetService("CoreGui")
 
--- Главное меню
 MainFrame.Name = "Main"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Position = UDim2.new(0.02, 0, 0.4, 0)
-MainFrame.Size = UDim2.new(0, 200, 0, 160)
+MainFrame.Size = UDim2.new(0, 220, 0, 140)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Полоска прогресса
-ProgressFrame.Name = "ProgressFrame"
-ProgressFrame.Parent = MainFrame
-ProgressFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-ProgressFrame.Position = UDim2.new(0, 5, 0, 5)
-ProgressFrame.Size = UDim2.new(1, -10, 0, 20)
+ProgressText.Parent = MainFrame
+ProgressText.Size = UDim2.new(1, 0, 0, 20)
+ProgressText.Text = "READY TO KILL"
+ProgressText.TextColor3 = Color3.new(1, 0, 0)
+ProgressText.Font = Enum.Font.Code
 
-ProgressBar.Name = "Bar"
-ProgressBar.Parent = ProgressFrame
-ProgressBar.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
-ProgressBar.Size = UDim2.new(0, 0, 1, 0)
-ProgressBar.BorderSizePixel = 0
-
-ProgressText.Parent = ProgressFrame
-ProgressText.Size = UDim2.new(1, 0, 1, 0)
-ProgressText.BackgroundTransparency = 1
-ProgressText.Text = "WAITING..."
-ProgressText.TextColor3 = Color3.new(1, 1, 1)
-ProgressText.TextSize = 12
-
-local function createBtn(name, text, pos, color)
+local function createBtn(text, pos, color)
     local btn = Instance.new("TextButton")
-    btn.Name = name
     btn.Parent = MainFrame
     btn.Text = text
-    btn.Size = UDim2.new(1, -10, 0, 40)
+    btn.Size = UDim2.new(1, -10, 0, 45)
     btn.Position = pos
     btn.BackgroundColor3 = color
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 16
+    btn.TextSize = 18
     return btn
 end
 
-ScanBtn = createBtn("ScanBtn", "START SCAN", UDim2.new(0, 5, 0, 35), Color3.fromRGB(46, 204, 113))
-LogsBtn = createBtn("LogsBtn", "LOGS (0)", UDim2.new(0, 5, 0, 85), Color3.fromRGB(52, 152, 219))
+ScanBtn = createBtn("ПОЛНЫЙ СКАН", UDim2.new(0, 5, 0, 25), Color3.fromRGB(150, 0, 0))
+LogsBtn = createBtn("ЛОГИ (0)", UDim2.new(0, 5, 0, 75), Color3.fromRGB(50, 50, 50))
 
--- Окно Логов
-LogsFrame.Name = "LogsFrame"
 LogsFrame.Parent = ScreenGui
-LogsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LogsFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 LogsFrame.Position = UDim2.new(0.2, 0, 0.3, 0)
-LogsFrame.Size = UDim2.new(0, 500, 0, 400)
+LogsFrame.Size = UDim2.new(0, 550, 0, 450)
 LogsFrame.Visible = false
-LogsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 LogsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
 UIListLayout.Parent = LogsFrame
-UIListLayout.Padding = UDim.new(0, 2)
 
-local logsCount = 0
-
-local function addLog(text, color)
-    logsCount = logsCount + 1
-    local logLabel = Instance.new("TextLabel")
-    logLabel.Parent = LogsFrame
-    logLabel.Size = UDim2.new(1, -10, 0, 30)
-    logLabel.BackgroundColor3 = color
-    logLabel.BackgroundTransparency = 0.3
-    logLabel.Text = " " .. text
-    logLabel.TextColor3 = Color3.new(1, 1, 1)
-    logLabel.TextXAlignment = Enum.TextXAlignment.Left
-    logLabel.Font = Enum.Font.Code
-    logLabel.TextSize = 14
-    LogsBtn.Text = "LOGS (" .. logsCount .. ")"
-    LogsFrame.CanvasPosition = Vector2.new(0, LogsFrame.AbsoluteCanvasSize.Y)
+local count = 0
+local function addLog(txt, col)
+    count = count + 1
+    local l = Instance.new("TextLabel")
+    l.Parent = LogsFrame
+    l.Size = UDim2.new(1, -10, 0, 40)
+    l.BackgroundColor3 = col
+    l.BackgroundTransparency = 0.4
+    l.Text = " " .. txt
+    l.TextColor3 = Color3.new(1, 1, 1)
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Font = Enum.Font.Code
+    l.TextScaled = true
+    LogsBtn.Text = "ЛОГИ (" .. count .. ")"
 end
 
 ScanBtn.MouseButton1Click:Connect(function()
-    logsCount = 0
-    LogsBtn.Text = "LOGS (0)"
+    count = 0
     for _, v in pairs(LogsFrame:GetChildren()) do if v:IsA("TextLabel") then v:Destroy() end end
     
-    local allObjects = game:GetDescendants()
-    local total = #allObjects
-    addLog("--- SCANNING " .. total .. " OBJECTS ---", Color3.fromRGB(100, 100, 100))
-
-    for i, obj in ipairs(allObjects) do
-        -- Обновление прогресс-бара каждые 50 объектов (чтоб не лагало)
-        if i % 50 == 0 or i == total then
-            local percent = i / total
-            ProgressBar.Size = UDim2.new(percent, 0, 1, 0)
-            ProgressText.Text = i .. " / " .. total
-            task.wait() -- Даем игре "подышать"
+    local obs = game:GetDescendants()
+    for i, v in ipairs(obs) do
+        if i % 100 == 0 then 
+            ProgressText.Text = "SCANNING: "..math.floor((i/#obs)*100).."%" 
+            task.wait() 
         end
-
+        
         pcall(function()
-            -- Ищем в ModuleScripts
-            if obj:IsA("ModuleScript") then
-                local src = obj.Source
-                local reqMatch = src:match("require%s*%(%s*%d+%s*%)")
+            if v:IsA("ModuleScript") then
+                local s = v.Source
+                -- Ищем ВООБЩЕ любой require, игнорируя пробелы и регистр
+                local found = s:lower():match("require%s*%b()") or s:lower():match("require%s*%(.-%)")
                 
-                if reqMatch then
-                    addLog("CRITICAL: " .. reqMatch .. " in " .. obj.Name, Color3.fromRGB(200, 0, 0))
-                elseif src:match("require%s*%b()") then
-                    addLog("SUS: require(...) in " .. obj.Name, Color3.fromRGB(200, 150, 0))
-                elseif src:match("getfenv") or src:match("loadstring") then
-                    addLog("HIDDEN: " .. obj.Name, Color3.fromRGB(150, 150, 0))
+                if found then
+                    -- Если внутри есть цифры - КРАСНЫЙ
+                    if found:match("%d+") then
+                        addLog("КРИТ ["..v.Name.."]: "..found, Color3.fromRGB(255, 0, 0))
+                    else
+                        -- Если там переменные или дичь - ЖЕЛТЫЙ
+                        addLog("ПОДОЗРЕНИЕ ["..v.Name.."]: "..found, Color3.fromRGB(200, 200, 0))
+                    end
                 end
-            -- Ищем подозрительные объекты (Remotes)
-            elseif obj:IsA("RemoteEvent") and (#obj.Name <= 2 or obj.Name:lower():find("backdoor")) then
-                addLog("REMOTE: " .. obj.Name, Color3.fromRGB(0, 100, 200))
+                
+                -- Доп. проверка на loadstring и getfenv
+                if s:lower():find("loadstring") or s:lower():find("getfenv") then
+                    addLog("HIDDEN CODE в "..v.Name, Color3.fromRGB(100, 0, 150))
+                end
             end
         end)
     end
-    addLog("--- SCAN FINISHED ---", Color3.fromRGB(100, 100, 100))
-    ProgressText.Text = "DONE!"
+    ProgressText.Text = "DONE! FOUND: "..count
 end)
 
-LogsBtn.MouseButton1Click:Connect(function()
-    LogsFrame.Visible = not LogsFrame.Visible
-end)
+LogsBtn.MouseButton1Click:Connect(function() LogsFrame.Visible = not LogsFrame.Visible end)
