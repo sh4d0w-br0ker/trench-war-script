@@ -5,7 +5,7 @@ local RS = game:GetService("ReplicatedStorage")
 local autoSlap = false
 local minimized = false
 
--- Функция атаки (оставил vector как просил)
+-- bubby
 local function attack(target, vec)
     if target and target.Character and LP.Character:FindFirstChild("Skull_Glove") then
         local args = {"slash", target.Character, vec}
@@ -13,7 +13,7 @@ local function attack(target, vec)
     end
 end
 
--- СОЗДАНИЕ ГУИ
+-- create gui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "JDHS_Menu"
 ScreenGui.Parent = LP:WaitForChild("PlayerGui")
@@ -37,7 +37,7 @@ Title.TextColor3 = Color3.new(1, 1, 1)
 Title.TextSize = 20
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Кнопка сворачивания
+-- button <
 local CollapseBtn = Instance.new("TextButton")
 CollapseBtn.Parent = Title
 CollapseBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -118,7 +118,7 @@ AutoSlapBtn.MouseButton1Click:Connect(function()
     AutoSlapBtn.BackgroundColor3 = autoSlap and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(60, 60, 60)
 end)
 
--- GIVE INFINITY MONEY (Твоя новая кнопка)
+-- GIVE INFINITY MONEY
 local InfMoneyBtn = Instance.new("TextButton")
 InfMoneyBtn.Parent = Content
 InfMoneyBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
