@@ -137,13 +137,15 @@ local tabMenu = createTab("Menu")
 local tabCombat = createTab("Combat")
 local tabTP = createTab("Teleport")
 local tabTroll = createTab("Troll")
-local tabArea51 = createTab("Area 51") -- Новая вкладка перед Settings
+local tabArea51 = createTab("Area 51")
+local tabKillers = createTab("Killers") -- Новая вкладка
 local tabSettings = createTab("Settings")
 
 -- ЛОГИКА
 local player = game.Players.LocalPlayer
-local espEnabled, hitboxEnabled, hpEspEnabled = false, false, false
-local hitboxSize = 30 -- Значение по умолчанию
+local espEnabled, hitboxEnabled, hpEspEnabled, killAllActive = false, false, false, false
+local hitboxSize = 30
+local killAllCoroutine = nil
 
 local function tp(cf, returnBack)
     local char = player.Character
@@ -177,6 +179,121 @@ local function getEnemyTeam()
     return (myTeam == "Killers") and "Survivors" or "Killers"
 end
 
+local function isPlayerKillers()
+    local myTeam = "Survivors"
+    local stats = player:FindFirstChild("leaderstats")
+    if stats and stats:FindFirstChild("Team") then myTeam = stats.Team.Value
+    elseif player.Team then myTeam = player.Team.Name end
+    return myTeam == "Killers"
+end
+
+local function showNotification(text, color)
+    local notification = Instance.new("TextLabel")
+    notification.Parent = tabKillers
+    notification.Size = UDim2.new(1, 0, 0, 30)
+    notification.Position = UDim2.new(0, 0, 0, 120)
+    notification.Text = text
+    notification.TextColor3 = color or Color3.fromRGB(255, 0, 0)
+    notification.BackgroundTransparency = 1
+    notification.Font = Enum.Font.GothamBold
+    notification.TextSize = 14
+    task.delay(3, function() notification:Destroy() end)
+end
+
+local function findPlayerByName(partialName)
+    partialName = partialName:lower()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Name:lower():find(partialName) then
+            return v
+        end
+    end
+    return nil
+end
+
+local function getSurvivors()
+    local survivors = {}
+    local enemyTeam = getEnemyTeam()
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= player then
+            local tTeam = "Survivors"
+            local ts = v:FindFirstChild("leaderstats")
+            if ts and ts:FindFirstChild("Team") then tTeam = ts.Team.Value
+            elseif v.Team then tTeam = v.Team.Name end
+            
+            if tTeam == enemyTeam then
+                table.insert(survivors, v)
+            end
+        end
+    end
+    return survivors
+end
+
+local function attackPlayer(targetPlayer)
+    if not targetPlayer or not targetPlayer.Character then return end
+    
+    local char = targetPlayer.Character
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    -- Увеличиваем хитбокс
+    hrp.Size = Vector3.new(30, 30, 30)
+    hrp.Transparency = 0.8
+    
+    -- Телепортируемся к игроку
+    tp(hrp.CFrame, false)
+    
+    -- Летаем вокруг игрока 4 секунды и атакуем
+    local startTime = os.clock()
+    local virtualInput = game:GetService("VirtualInputManager")
+    
+    while os.clock() - startTime < 4 and targetPlayer.Character and hrp do
+        -- Телепортируемся немного вокруг игрока
+        local offset = Vector3.new(
+            math.random(-5, 5),
+            math.random(-2, 2),
+            math.random(-5, 5)
+        )
+        
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = hrp.CFrame + offset
+        end
+        
+        -- Имитируем клики мыши (атаку)
+        virtualInput:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        task.wait(0.1)
+        virtualInput:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+        
+        task.wait(0.2)
+    end
+    
+    -- Возвращаем хитбокс в норму
+    if hrp then
+        hrp.Size = Vector3.new(2,2,1)
+        hrp.Transparency = 1
+    end
+end
+
+local function killAllLoop()
+    while killAllActive do
+        if not isPlayerKillers() then
+            killAllActive = false
+            showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
+            break
+        end
+        
+        local survivors = getSurvivors()
+        if #survivors > 0 then
+            for _, target in ipairs(survivors) do
+                if not killAllActive then break end
+                attackPlayer(target)
+                task.wait(0.5)
+            end
+        else
+            task.wait(1)
+        end
+    end
+end
+
 -- Функция для смены цвета GUI
 local function changeGuiColor(color)
     if color == "green" then
@@ -195,7 +312,7 @@ local function changeGuiColor(color)
 end
 
 -- Функция для создания поля ввода
-local function createInput(parent, placeholder, defaultValue, callback)
+local function createInput(parent, placeholder, defaultValue, callback, isKillersTab)
     local frame = Instance.new("Frame")
     frame.Parent = parent
     frame.Size = UDim2.new(1, 0, 0, 40)
@@ -216,7 +333,7 @@ local function createInput(parent, placeholder, defaultValue, callback)
     box.Position = UDim2.new(0, 0, 0, 18)
     box.Size = UDim2.new(0.7, 0, 0, 20)
     box.Text = tostring(defaultValue)
-    box.PlaceholderText = "Введите значение"
+    box.PlaceholderText = "Введите ник"
     box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     box.TextColor3 = Color3.new(1, 1, 1)
     box.Font = Enum.Font.Gotham
@@ -227,35 +344,61 @@ local function createInput(parent, placeholder, defaultValue, callback)
     boxCorner.CornerRadius = UDim.new(0, 4)
     boxCorner.Parent = box
     
-    local applyBtn = Instance.new("TextButton")
-    applyBtn.Parent = frame
-    applyBtn.Position = UDim2.new(0.75, 0, 0, 18)
-    applyBtn.Size = UDim2.new(0.25, -5, 0, 20)
-    applyBtn.Text = "Применить"
-    applyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    applyBtn.TextColor3 = Color3.new(1, 1, 1)
-    applyBtn.Font = Enum.Font.Gotham
-    applyBtn.TextSize = 10
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 4)
-    btnCorner.Parent = applyBtn
-    
-    applyBtn.MouseButton1Click:Connect(function()
-        local value = tonumber(box.Text)
-        if value then
-            callback(value)
-        end
-    end)
-    
-    box.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
+    if isKillersTab then
+        local killBtn = Instance.new("TextButton")
+        killBtn.Parent = frame
+        killBtn.Position = UDim2.new(0.75, 0, 0, 18)
+        killBtn.Size = UDim2.new(0.25, -5, 0, 20)
+        killBtn.Text = "Kill"
+        killBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+        killBtn.TextColor3 = Color3.new(1, 1, 1)
+        killBtn.Font = Enum.Font.Gotham
+        killBtn.TextSize = 10
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = killBtn
+        
+        killBtn.MouseButton1Click:Connect(function()
+            callback(box.Text)
+        end)
+        
+        box.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                callback(box.Text)
+            end
+        end)
+    else
+        local applyBtn = Instance.new("TextButton")
+        applyBtn.Parent = frame
+        applyBtn.Position = UDim2.new(0.75, 0, 0, 18)
+        applyBtn.Size = UDim2.new(0.25, -5, 0, 20)
+        applyBtn.Text = "Применить"
+        applyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        applyBtn.TextColor3 = Color3.new(1, 1, 1)
+        applyBtn.Font = Enum.Font.Gotham
+        applyBtn.TextSize = 10
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = applyBtn
+        
+        applyBtn.MouseButton1Click:Connect(function()
             local value = tonumber(box.Text)
             if value then
                 callback(value)
             end
-        end
-    end)
+        end)
+        
+        box.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                local value = tonumber(box.Text)
+                if value then
+                    callback(value)
+                end
+            end
+        end)
+    end
     
     return frame
 end
@@ -352,7 +495,7 @@ task.spawn(function()
 
                 -- Hitbox (с изменяемым размером)
                 if hrp then
-                    if hitboxEnabled and isEnemy then
+                    if (hitboxEnabled and isEnemy) or killAllActive then
                         hrp.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                         hrp.Transparency = 0.8
                         hrp.CanCollide = false
@@ -407,6 +550,10 @@ end, Color3.fromRGB(80, 80, 150))
 addBtn(tabTroll, "Esp all: OFF", function(b) 
     espEnabled = not espEnabled 
     b.Text = "Esp all: "..(espEnabled and "ON" or "OFF") 
+    b.BackgroundColor3 = espEnabled and Color3.fromRGB(0,150,0) or Colo
+addBtn(tabTroll, "Esp all: OFF", function(b) 
+    espEnabled = not espEnabled 
+    b.Text = "Esp all: "..(espEnabled and "ON" or "OFF") 
     b.BackgroundColor3 = espEnabled and Color3.fromRGB(0,150,0) or Color3.fromRGB(50,50,50) 
 end)
 
@@ -433,7 +580,7 @@ end)
 -- AREA 51
 addBtn(tabArea51, "Get патроны", function() 
     tp(CFrame.new(184.373947, 314.102753, 437.209137, -0.941430867, -3.7041751e-08, -0.337206006, -2.10029727e-09, 1, -1.03985293e-07, 0.337206006, -9.71867351e-08, -0.941430867), true) 
-end, Color3.fromRGB(255, 215, 0)) -- Золотой цвет
+end, Color3.fromRGB(255, 215, 0))
 
 addBtn(tabArea51, "Get дробовик", function() 
     tp(CFrame.new(169.514648, 313.777954, 439.303528, -0.999640346, -0.00418779766, 0.0264875852, -0.00472095702, 0.999786854, -0.0200982448, -0.0263977721, -0.0202160627, -0.999447107), true) 
@@ -450,6 +597,79 @@ end, Color3.fromRGB(210, 180, 140))
 addBtn(tabArea51, "Get Sniper", function() 
     tp(CFrame.new(403.631653, 512.779968, 463.301208, -0.99999994, 1.72834191e-08, -0.000376791257, 1.72725585e-08, 1, 2.88291577e-08, 0.000376791257, 2.88226474e-08, -0.99999994), true) 
 end, Color3.fromRGB(138, 43, 226))
+
+-- KILLERS
+local killersTitle = Instance.new("TextLabel")
+killersTitle.Parent = tabKillers
+killersTitle.Size = UDim2.new(1, 0, 0, 30)
+killersTitle.Text = "KILLERS MENU"
+killersTitle.TextColor3 = Color3.new(1, 0, 0)
+killersTitle.BackgroundTransparency = 1
+killersTitle.Font = Enum.Font.GothamBold
+killersTitle.TextSize = 16
+
+-- Поле ввода ника
+createInput(tabKillers, "Введите ник жертвы:", "", function(inputText)
+    if not isPlayerKillers() then
+        showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
+        return
+    end
+    
+    local target = findPlayerByName(inputText)
+    if target then
+        showNotification("Атака на "..target.Name.."!", Color3.fromRGB(0, 255, 0))
+        attackPlayer(target)
+    else
+        showNotification("Игрок не найден!", Color3.fromRGB(255, 0, 0))
+    end
+end, true)
+
+-- Кнопка Kill All
+local killAllBtn = Instance.new("TextButton")
+killAllBtn.Parent = tabKillers
+killAllBtn.Size = UDim2.new(1, 0, 0, 40)
+killAllBtn.Position = UDim2.new(0, 0, 0, 90)
+killAllBtn.Text = "KILL ALL: OFF"
+killAllBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+killAllBtn.TextColor3 = Color3.new(1, 1, 1)
+killAllBtn.Font = Enum.Font.GothamBold
+killAllBtn.TextSize = 14
+
+local killAllCorner = Instance.new("UICorner")
+killAllCorner.CornerRadius = UDim.new(0, 6)
+killAllCorner.Parent = killAllBtn
+
+killAllBtn.MouseButton1Click:Connect(function()
+    if not isPlayerKillers() then
+        showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
+        return
+    end
+    
+    killAllActive = not killAllActive
+    killAllBtn.Text = "KILL ALL: "..(killAllActive and "ON" or "OFF")
+    killAllBtn.BackgroundColor3 = killAllActive and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(50, 50, 50)
+    
+    if killAllActive then
+        if killAllCoroutine then
+            coroutine.close(killAllCoroutine)
+        end
+        killAllCoroutine = coroutine.create(killAllLoop)
+        coroutine.resume(killAllCoroutine)
+    end
+end)
+
+-- Информация
+local killersInfo = Instance.new("TextLabel")
+killersInfo.Parent = tabKillers
+killersInfo.Size = UDim2.new(1, 0, 0, 60)
+killersInfo.Position = UDim2.new(0, 0, 0, 140)
+killersInfo.Text = "• Можно вводить часть ника\n• Kill All атакует всех выживших\n• Атака длится 4 секунды"
+killersInfo.TextColor3 = Color3.fromRGB(150, 150, 150)
+killersInfo.BackgroundTransparency = 1
+killersInfo.Font = Enum.Font.Gotham
+killersInfo.TextSize = 11
+killersInfo.TextWrapped = true
+killersInfo.TextXAlignment = Enum.TextXAlignment.Left
 
 -- SETTINGS
 -- Заголовок
@@ -526,7 +746,6 @@ hitboxTitle.TextSize = 14
 -- Поле ввода для размера хитбокса
 createInput(tabSettings, "Размер хитбокса (по умолч. 30):", hitboxSize, function(value)
     hitboxSize = value
-    -- Показываем уведомление
     local notification = Instance.new("TextLabel")
     notification.Parent = tabSettings
     notification.Size = UDim2.new(1, 0, 0, 20)
