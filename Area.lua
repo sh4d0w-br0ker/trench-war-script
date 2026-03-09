@@ -138,14 +138,13 @@ local tabCombat = createTab("Combat")
 local tabTP = createTab("Teleport")
 local tabTroll = createTab("Troll")
 local tabArea51 = createTab("Area 51")
-local tabKillers = createTab("Killers") -- Новая вкладка
+local tabKillers = createTab("Killers")
 local tabSettings = createTab("Settings")
 
 -- ЛОГИКА
 local player = game.Players.LocalPlayer
 local espEnabled, hitboxEnabled, hpEspEnabled, killAllActive = false, false, false, false
 local hitboxSize = 30
-local killAllCoroutine = nil
 
 local function tp(cf, returnBack)
     local char = player.Character
@@ -240,13 +239,15 @@ local function attackPlayer(targetPlayer)
     hrp.Transparency = 0.8
     
     -- Телепортируемся к игроку
-    tp(hrp.CFrame, false)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = hrp.CFrame
+    end
     
     -- Летаем вокруг игрока 4 секунды и атакуем
     local startTime = os.clock()
     local virtualInput = game:GetService("VirtualInputManager")
     
-    while os.clock() - startTime < 4 and targetPlayer.Character and hrp do
+    while os.clock() - startTime < 4 and targetPlayer.Character and hrp and player.Character and player.Character:FindFirstChild("HumanoidRootPart") do
         -- Телепортируемся немного вокруг игрока
         local offset = Vector3.new(
             math.random(-5, 5),
@@ -254,9 +255,7 @@ local function attackPlayer(targetPlayer)
             math.random(-5, 5)
         )
         
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = hrp.CFrame + offset
-        end
+        player.Character.HumanoidRootPart.CFrame = hrp.CFrame + offset
         
         -- Имитируем клики мыши (атаку)
         virtualInput:SendMouseButtonEvent(0, 0, 0, true, game, 1)
@@ -270,27 +269,6 @@ local function attackPlayer(targetPlayer)
     if hrp then
         hrp.Size = Vector3.new(2,2,1)
         hrp.Transparency = 1
-    end
-end
-
-local function killAllLoop()
-    while killAllActive do
-        if not isPlayerKillers() then
-            killAllActive = false
-            showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
-            break
-        end
-        
-        local survivors = getSurvivors()
-        if #survivors > 0 then
-            for _, target in ipairs(survivors) do
-                if not killAllActive then break end
-                attackPlayer(target)
-                task.wait(0.5)
-            end
-        else
-            task.wait(1)
-        end
     end
 end
 
@@ -550,10 +528,6 @@ end, Color3.fromRGB(80, 80, 150))
 addBtn(tabTroll, "Esp all: OFF", function(b) 
     espEnabled = not espEnabled 
     b.Text = "Esp all: "..(espEnabled and "ON" or "OFF") 
-    b.BackgroundColor3 = espEnabled and Color3.fromRGB(0,150,0) or Colo
-addBtn(tabTroll, "Esp all: OFF", function(b) 
-    espEnabled = not espEnabled 
-    b.Text = "Esp all: "..(espEnabled and "ON" or "OFF") 
     b.BackgroundColor3 = espEnabled and Color3.fromRGB(0,150,0) or Color3.fromRGB(50,50,50) 
 end)
 
@@ -639,6 +613,9 @@ local killAllCorner = Instance.new("UICorner")
 killAllCorner.CornerRadius = UDim.new(0, 6)
 killAllCorner.Parent = killAllBtn
 
+-- Переменные для контроля цикла
+local killAllRunning = false
+
 killAllBtn.MouseButton1Click:Connect(function()
     if not isPlayerKillers() then
         showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
@@ -650,11 +627,34 @@ killAllBtn.MouseButton1Click:Connect(function()
     killAllBtn.BackgroundColor3 = killAllActive and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(50, 50, 50)
     
     if killAllActive then
-        if killAllCoroutine then
-            coroutine.close(killAllCoroutine)
-        end
-        killAllCoroutine = coroutine.create(killAllLoop)
-        coroutine.resume(killAllCoroutine)
+        -- Запускаем в отдельном потоке
+        killAllRunning = true
+        task.spawn(function()
+            while killAllActive and killAllRunning do
+                if not isPlayerKillers() then
+                    killAllActive = false
+                    killAllRunning = false
+                    killAllBtn.Text = "KILL ALL: OFF"
+                    killAllBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    showNotification("You No Killers!", Color3.fromRGB(255, 0, 0))
+                    break
+                end
+                
+                local survivors = getSurvivors()
+                if #survivors > 0 then
+                    for _, target in ipairs(survivors) do
+                        if not killAllActive or not killAllRunning then break end
+                        attackPlayer(target)
+                        task.wait(0.5)
+                    end
+                else
+                    task.wait(1)
+                end
+            end
+        end)
+    else
+        -- Просто останавливаем флаг, цикл сам завершится
+        killAllRunning = false
     end
 end)
 
