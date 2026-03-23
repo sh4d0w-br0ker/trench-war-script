@@ -231,7 +231,7 @@ createToggle("Esp GunDrop", EspPage, function(s) cfg.GunEsp = s end, Color3.from
 -- AUTO PAGE
 createToggle("Auto GunDrop", AutoPage, function(s) autoGunState = s end, Color3.fromRGB(150, 100, 0))
 
--- Auto murder kill (с постоянной стрельбой)
+-- Auto murder kill (с постоянной стрельбой через евент)
 createToggle("Auto murder kill", AutoPage, function(s)
     murderKillState = s
     if s then
@@ -303,22 +303,19 @@ createToggle("Auto murder kill", AutoPage, function(s)
                         myHrp.CFrame = behindPos
                         task.wait(0.2)
                         
-                        -- Постоянно стреляем
+                        -- ПОСТОЯННО СТРЕЛЯЕМ ЧЕРЕЗ ЕВЕНТ
                         local gun = char:FindFirstChildWhichIsA("Tool")
                         if gun and gun:FindFirstChild("Shoot") then
                             local shootEvent = gun:FindFirstChild("Shoot")
                             if shootEvent:IsA("RemoteEvent") then
-                                -- Отправляем евент постоянно пока мурдер жив
-                                while murderKillState and murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") do
+                                -- Отправляем евент каждые 0.1 секунды пока мурдер жив
+                                local startTime = tick()
+                                while murderKillState and murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") and tick() - startTime < 10 do
+                                    -- Стреляем в мурдера
                                     shootEvent:FireServer(murderHrp.CFrame, murderHrp.CFrame)
                                     task.wait(0.1)
                                 end
                             end
-                        else
-                            -- Если нет евента, просто кликаем
-                            VirtualInput:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                            task.wait(0.05)
-                            VirtualInput:SendMouseButtonEvent(0, 0, 0, false, game, 1)
                         end
                         
                         task.wait(0.5)
@@ -329,7 +326,7 @@ createToggle("Auto murder kill", AutoPage, function(s)
                         end
                     end
                 end
-                task.wait(0.5)
+                task.wait(1)
             end
         end)
     end
