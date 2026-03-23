@@ -212,29 +212,26 @@ infoText.TextWrapped = true
 infoText.Font = Enum.Font.GothamBold
 
 -- Конфиг и переменные
-local cfg = {Murder = false, Sheriff = false, Innocent = false, GunEsp = false, CoinEsp = false}
+local cfg = {Murder = false, Sheriff = false, Innocent = false, GunEsp = false}
 local autoGunState = false
 local murderKillState = false
 local killAllState = false
-local autoCoinState = false
 local oldPos = nil
 local isTeleporting = false
 local originalPos = nil
 local rainbowConnection = nil
 local noclipConnection = nil
-local autoCoinConnection = nil
 
 -- ESP PAGE
 createToggle("Esp Murder", EspPage, function(s) cfg.Murder = s end, Color3.fromRGB(200, 0, 0))
 createToggle("Esp Sheriff", EspPage, function(s) cfg.Sheriff = s end, Color3.fromRGB(0, 100, 255))
 createToggle("Esp Innocent", EspPage, function(s) cfg.Innocent = s end, Color3.fromRGB(0, 200, 0))
 createToggle("Esp GunDrop", EspPage, function(s) cfg.GunEsp = s end, Color3.fromRGB(200, 0, 255))
-createToggle("Esp Coin", EspPage, function(s) cfg.CoinEsp = s end, Color3.fromRGB(255, 255, 0))
 
 -- AUTO PAGE
 createToggle("Auto GunDrop", AutoPage, function(s) autoGunState = s end, Color3.fromRGB(150, 100, 0))
 
--- Auto murder kill (с возвратом на место)
+-- Auto murder kill (с постоянной стрельбой)
 createToggle("Auto murder kill", AutoPage, function(s)
     murderKillState = s
     if s then
@@ -306,14 +303,19 @@ createToggle("Auto murder kill", AutoPage, function(s)
                         myHrp.CFrame = behindPos
                         task.wait(0.2)
                         
-                        -- Стреляем через евент Gun
+                        -- Постоянно стреляем
                         local gun = char:FindFirstChildWhichIsA("Tool")
                         if gun and gun:FindFirstChild("Shoot") then
                             local shootEvent = gun:FindFirstChild("Shoot")
                             if shootEvent:IsA("RemoteEvent") then
-                                shootEvent:FireServer(murderHrp.CFrame, murderHrp.CFrame)
+                                -- Отправляем евент постоянно пока мурдер жив
+                                while murderKillState and murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") do
+                                    shootEvent:FireServer(murderHrp.CFrame, murderHrp.CFrame)
+                                    task.wait(0.1)
+                                end
                             end
                         else
+                            -- Если нет евента, просто кликаем
                             VirtualInput:SendMouseButtonEvent(0, 0, 0, true, game, 1)
                             task.wait(0.05)
                             VirtualInput:SendMouseButtonEvent(0, 0, 0, false, game, 1)
@@ -333,10 +335,22 @@ createToggle("Auto murder kill", AutoPage, function(s)
     end
 end, Color3.fromRGB(200, 50, 50))
 
--- Auto kill all (bring всех к себе)
+-- Auto kill all (с noclip и притягиванием)
 createToggle("Auto kill all", AutoPage, function(s)
     killAllState = s
     if s then
+        -- Включаем Noclip
+        noclipConnection = RunService.Stepped:Connect(function()
+            local char = Players.LocalPlayer.Character
+            if char then
+                for _, part in pairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        
         task.spawn(function()
             while killAllState do
                 local lp = Players.LocalPlayer
@@ -371,7 +385,7 @@ createToggle("Auto kill all", AutoPage, function(s)
                 local myHrp = char:FindFirstChild("HumanoidRootPart")
                 if not myHrp then task.wait(1) continue end
                 
-                -- Bring всех ко мне и увеличиваем хитбоксы
+                -- Притягиваем всех ко мне и увеличиваем хитбоксы
                 for _, p in pairs(Players:GetPlayers()) do
                     if p ~= lp and p.Character then
                         local hrp = p.Character:FindFirstChild("HumanoidRootPart")
@@ -399,6 +413,21 @@ createToggle("Auto kill all", AutoPage, function(s)
             end
         end)
     else
+        -- Выключаем Noclip
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        -- Возвращаем коллизию
+        local char = Players.LocalPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        -- Возвращаем хитбоксы в норму
         for _, p in pairs(Players:GetPlayers()) do
             if p.Character then
                 local hrp = p.Character:FindFirstChild("HumanoidRootPart")
@@ -410,85 +439,6 @@ createToggle("Auto kill all", AutoPage, function(s)
         end
     end
 end, Color3.fromRGB(150, 0, 0))
-
--- Auto coin farm
-createToggle("Auto coin farm", AutoPage, function(s)
-    autoCoinState = s
-    if s then
-        -- Включаем Noclip
-        noclipConnection = RunService.Stepped:Connect(function()
-            local char = Players.LocalPlayer.Character
-            if char then
-                for _, part in pairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end)
-        
-        -- Запускаем сбор монет
-        autoCoinConnection = task.spawn(function()
-            while autoCoinState do
-                local lp = Players.LocalPlayer
-                local char = lp.Character
-                if not char then task.wait(1) continue end
-                
-                local myHrp = char:FindFirstChild("HumanoidRootPart")
-                if not myHrp then task.wait(1) continue end
-                
-                -- Ищем все Coin_Server
-                local coins = {}
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj.Name == "Coin_Server" and obj:IsA("BasePart") then
-                        table.insert(coins, obj)
-                    end
-                end
-                
-                if #coins > 0 then
-                    for _, coin in pairs(coins) do
-                        if not autoCoinState then break end
-                        -- Летим к монете со средней скоростью
-                        local targetPos = coin.Position
-                        local distance = (myHrp.Position - targetPos).Magnitude
-                        
-                        while distance > 5 and autoCoinState do
-                            local currentPos = myHrp.Position
-                            local direction = (targetPos - currentPos).Unit
-                            local newPos = currentPos + direction * 20
-                            myHrp.CFrame = CFrame.new(newPos, targetPos)
-                            task.wait(0.05)
-                            distance = (myHrp.Position - targetPos).Magnitude
-                        end
-                        
-                        task.wait(0.1)
-                    end
-                else
-                    task.wait(1)
-                end
-            end
-        end)
-    else
-        -- Выключаем Noclip
-        if noclipConnection then
-            noclipConnection:Disconnect()
-            noclipConnection = nil
-        end
-        if autoCoinConnection then
-            task.cancel(autoCoinConnection)
-            autoCoinConnection = nil
-        end
-        -- Возвращаем коллизию
-        local char = Players.LocalPlayer.Character
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        end
-    end
-end, Color3.fromRGB(255, 200, 0))
 
 -- TELEPORT PAGE
 -- TP random innocent
@@ -681,17 +631,6 @@ RunService.RenderStepped:Connect(function()
             
             high.Enabled = (color ~= nil)
             if color then high.FillColor = color end
-        end
-    end
-    
-    -- ESP Coin_Server
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj.Name == "Coin_Server" and obj:IsA("BasePart") then
-            local high = obj:FindFirstChild("CoinEsp") or Instance.new("Highlight", obj)
-            high.Name = "CoinEsp"
-            high.FillColor = Color3.fromRGB(255, 255, 0)
-            high.OutlineColor = Color3.fromRGB(255, 200, 0)
-            high.Enabled = cfg.CoinEsp
         end
     end
 
