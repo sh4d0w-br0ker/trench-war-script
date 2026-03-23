@@ -19,7 +19,7 @@ MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 400, 0, 380)
+MainFrame.Size = UDim2.new(0, 400, 0, 400)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -74,7 +74,7 @@ MinBtn.MouseButton1Click:Connect(function()
     isMin = not isMin
     LeftPanel.Visible = not isMin
     ContentFrame.Visible = not isMin
-    MainFrame:TweenSize(isMin and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 380), "Out", "Quad", 0.1, true)
+    MainFrame:TweenSize(isMin and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 400), "Out", "Quad", 0.1, true)
     MinBtn.Text = isMin and ">" or "<"
 end)
 
@@ -205,14 +205,14 @@ end
 -- INFO PAGE
 local infoText = Instance.new("TextLabel", InfoPage)
 infoText.Size = UDim2.new(1, -10, 0, 80)
-infoText.Text = "VOID HUB ULTRA\n\nCreated by xXram000dieXx\nVersion 3.5"
+infoText.Text = "VOID HUB ULTRA\n\nCreated by xXram000dieXx\nVersion 3.6"
 infoText.TextColor3 = Color3.new(1, 1, 1)
 infoText.BackgroundTransparency = 1
 infoText.TextWrapped = true
 infoText.Font = Enum.Font.GothamBold
 
 -- Конфиг и переменные
-local cfg = {Murder = false, Sheriff = false, Innocent = false, GunEsp = false}
+local cfg = {Murder = false, Sheriff = false, Innocent = false, GunEsp = false, NameEsp = false}
 local autoGunState = false
 local murderKillState = false
 local killAllState = false
@@ -222,16 +222,95 @@ local originalPos = nil
 local rainbowConnection = nil
 local noclipConnection = nil
 
+-- Функция для создания Name ESP
+local function updateNameEsp()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p == Players.LocalPlayer then continue end
+        local char = p.Character
+        if char and char:FindFirstChild("Head") then
+            local head = char.Head
+            local billboard = head:FindFirstChild("NameEsp")
+            
+            if cfg.NameEsp then
+                if not billboard then
+                    billboard = Instance.new("BillboardGui")
+                    billboard.Name = "NameEsp"
+                    billboard.Size = UDim2.new(0, 200, 0, 40)
+                    billboard.StudsOffset = Vector3.new(0, 2, 0)
+                    billboard.AlwaysOnTop = true
+                    billboard.Parent = head
+                    
+                    local text = Instance.new("TextLabel")
+                    text.Name = "Text"
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.BackgroundTransparency = 1
+                    text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    text.TextStrokeTransparency = 0.5
+                    text.Font = Enum.Font.GothamBold
+                    text.TextSize = 14
+                    text.Text = p.Name
+                    text.Parent = billboard
+                    
+                    -- Определяем цвет по роли
+                    local hasK = char:FindFirstChild("Knife") or (p.Backpack and p.Backpack:FindFirstChild("Knife"))
+                    local hasG = char:FindFirstChild("Gun") or (p.Backpack and p.Backpack:FindFirstChild("Gun"))
+                    
+                    if hasK then
+                        text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    elseif hasG then
+                        text.TextColor3 = Color3.fromRGB(0, 100, 255)
+                    else
+                        text.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    end
+                else
+                    -- Обновляем цвет
+                    local text = billboard:FindFirstChild("Text")
+                    if text then
+                        local hasK = char:FindFirstChild("Knife") or (p.Backpack and p.Backpack:FindFirstChild("Knife"))
+                        local hasG = char:FindFirstChild("Gun") or (p.Backpack and p.Backpack:FindFirstChild("Gun"))
+                        
+                        if hasK then
+                            text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                        elseif hasG then
+                            text.TextColor3 = Color3.fromRGB(0, 100, 255)
+                        else
+                            text.TextColor3 = Color3.fromRGB(0, 255, 0)
+                        end
+                        text.Text = p.Name
+                    end
+                end
+            else
+                if billboard then
+                    billboard:Destroy()
+                end
+            end
+        end
+    end
+end
+
 -- ESP PAGE
 createToggle("Esp Murder", EspPage, function(s) cfg.Murder = s end, Color3.fromRGB(200, 0, 0))
 createToggle("Esp Sheriff", EspPage, function(s) cfg.Sheriff = s end, Color3.fromRGB(0, 100, 255))
 createToggle("Esp Innocent", EspPage, function(s) cfg.Innocent = s end, Color3.fromRGB(0, 200, 0))
 createToggle("Esp GunDrop", EspPage, function(s) cfg.GunEsp = s end, Color3.fromRGB(200, 0, 255))
+createToggle("Esp Name Items", EspPage, function(s) 
+    cfg.NameEsp = s
+    if not s then
+        -- Удаляем все билборды
+        for _, p in pairs(Players:GetPlayers()) do
+            local char = p.Character
+            if char and char:FindFirstChild("Head") then
+                local bill = char.Head:FindFirstChild("NameEsp")
+                if bill then bill:Destroy() end
+            end
+        end
+    end
+end, Color3.fromRGB(255, 200, 0))
 
 -- AUTO PAGE
 createToggle("Auto GunDrop", AutoPage, function(s) autoGunState = s end, Color3.fromRGB(150, 100, 0))
 
--- Auto murder kill (с постоянной стрельбой через евент)
+-- Auto murder kill (с правильным евентом)
 createToggle("Auto murder kill", AutoPage, function(s)
     murderKillState = s
     if s then
@@ -303,17 +382,24 @@ createToggle("Auto murder kill", AutoPage, function(s)
                         myHrp.CFrame = behindPos
                         task.wait(0.2)
                         
-                        -- ПОСТОЯННО СТРЕЛЯЕМ ЧЕРЕЗ ЕВЕНТ
+                        -- Стреляем через правильный евент каждые 0.5 секунд
                         local gun = char:FindFirstChildWhichIsA("Tool")
                         if gun and gun:FindFirstChild("Shoot") then
                             local shootEvent = gun:FindFirstChild("Shoot")
                             if shootEvent:IsA("RemoteEvent") then
-                                -- Отправляем евент каждые 0.1 секунды пока мурдер жив
+                                -- Отправляем евент каждые 0.5 секунды
                                 local startTime = tick()
                                 while murderKillState and murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") and tick() - startTime < 10 do
-                                    -- Стреляем в мурдера
-                                    shootEvent:FireServer(murderHrp.CFrame, murderHrp.CFrame)
-                                    task.wait(0.1)
+                                    -- Берем актуальные координаты мурдера
+                                    local targetPos = murderHrp.CFrame
+                                    local myPos = myHrp.CFrame
+                                    
+                                    local args = {
+                                        targetPos,
+                                        myPos
+                                    }
+                                    shootEvent:FireServer(unpack(args))
+                                    task.wait(0.5)
                                 end
                             end
                         end
@@ -605,12 +691,12 @@ applyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Главный цикл ESP и GunDrop
+-- Главный цикл ESP, Name ESP и GunDrop
 RunService.RenderStepped:Connect(function()
     local lp = Players.LocalPlayer
     local char = lp.Character
     
-    -- ESP Игроков
+    -- ESP Игроков (Highlight)
     for _, p in pairs(Players:GetPlayers()) do
         if p == lp then continue end
         local pChar = p.Character
@@ -630,6 +716,9 @@ RunService.RenderStepped:Connect(function()
             if color then high.FillColor = color end
         end
     end
+    
+    -- Name ESP
+    updateNameEsp()
 
     -- GunDrop логика
     local gun = workspace:FindFirstChild("GunDrop", true)
