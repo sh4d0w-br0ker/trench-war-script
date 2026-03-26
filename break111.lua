@@ -306,7 +306,7 @@ catJumpBtn.MouseButton1Click:Connect(function()
         catJumpConnection = task.spawn(function()
             while catJumpEnabled do
                 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("CatJumped"):FireServer()
-                task.wait(0.05)
+                task.wait(0.05) -- Пауза 0.05 секунды между прыжками
             end
         end)
     else
@@ -355,51 +355,6 @@ end)
 CreateButton(tMisc, "Give Ladder", Color3.fromRGB(50, 100, 200), function()
     local args = {1}
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Ladder"):FireServer(unpack(args))
-end)
-
--- Give All Money Toggle
-local moneyHighlightEnabled = false
-local moneyHighlightBtn = CreateButton(tMisc, "Money Highlight: OFF", Color3.fromRGB(70, 70, 70), function() end)
-
-local function highlightMoney(enable)
-    local moneyFolders = {"Money", "Money2", "Money3"}
-    
-    for _, folderName in pairs(moneyFolders) do
-        local folder = workspace:FindFirstChild(folderName)
-        if folder then
-            for _, moneyPart in pairs(folder:GetChildren()) do
-                if moneyPart:IsA("BasePart") then
-                    if enable then
-                        -- Сохраняем оригинальный цвет если еще не сохранен
-                        if not moneyPart:GetAttribute("OriginalColor") then
-                            moneyPart:SetAttribute("OriginalColor", moneyPart.Color)
-                        end
-                        -- Устанавливаем ярко-зеленый цвет
-                        moneyPart.Color = Color3.fromRGB(0, 255, 0)
-                    else
-                        -- Возвращаем оригинальный цвет
-                        local originalColor = moneyPart:GetAttribute("OriginalColor")
-                        if originalColor then
-                            moneyPart.Color = originalColor
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-
-moneyHighlightBtn.MouseButton1Click:Connect(function()
-    moneyHighlightEnabled = not moneyHighlightEnabled
-    if moneyHighlightEnabled then
-        moneyHighlightBtn.Text = "Money Highlight: ON"
-        moneyHighlightBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
-        highlightMoney(true)
-    else
-        moneyHighlightBtn.Text = "Money Highlight: OFF"
-        moneyHighlightBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-        highlightMoney(false)
-    end
 end)
 
 -- Вкладка SETTINGS
