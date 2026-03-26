@@ -4,7 +4,6 @@
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 
 -- Видалення старої копії
@@ -307,7 +306,7 @@ catJumpBtn.MouseButton1Click:Connect(function()
         catJumpConnection = task.spawn(function()
             while catJumpEnabled do
                 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("CatJumped"):FireServer()
-                task.wait(0.05)
+                task.wait(0.05) -- Пауза 0.05 секунды между прыжками
             end
         end)
     else
@@ -356,48 +355,6 @@ end)
 CreateButton(tMisc, "Give Ladder", Color3.fromRGB(50, 100, 200), function()
     local args = {1}
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Ladder"):FireServer(unpack(args))
-end)
-
--- Give All Money Button
-CreateButton(tMisc, "Give All Money", Color3.fromRGB(100, 200, 100), function()
-    local moneyFolders = {"Money", "Money2", "Money3"}
-    local originalSizes = {}
-    
-    -- Увеличиваем хитбоксы в 1000 раз
-    for _, folderName in pairs(moneyFolders) do
-        local folder = workspace:FindFirstChild(folderName)
-        if folder then
-            for _, moneyPart in pairs(folder:GetChildren()) do
-                if moneyPart:IsA("BasePart") then
-                    originalSizes[moneyPart] = moneyPart.Size
-                    moneyPart.Size = moneyPart.Size * 1000
-                end
-            end
-        end
-    end
-    
-    -- Делаем 2 клика по экрану
-    local mouse = Player:GetMouse()
-    for i = 1, 2 do
-        local clickPos = mouse.Hit.p
-        local clickEvent = {
-            Target = nil,
-            Position = clickPos,
-            UnitRay = Ray.new(mouse.UnitRay.Origin, mouse.UnitRay.Direction),
-            UserInputState = Enum.UserInputState.Begin,
-            UserInputType = Enum.UserInputType.MouseButton1
-        }
-        game:GetService("ContextActionService"):FireInputBegan(mouse, clickEvent)
-        task.wait(0.1)
-    end
-    
-    -- Возвращаем оригинальные размеры через 3 секунды
-    task.wait(3)
-    for moneyPart, originalSize in pairs(originalSizes) do
-        if moneyPart and moneyPart.Parent then
-            moneyPart.Size = originalSize
-        end
-    end
 end)
 
 -- Вкладка SETTINGS
