@@ -1,9 +1,10 @@
 --[[
-	WARNING: No backdoored Open source Good script
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
 ]]
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 
 -- Видалення старої копії
@@ -185,7 +186,9 @@ CreateButton(tUser, "Get ExpiredBloxyCola", Color3.fromRGB(120, 200, 255), funct
 CreateButton(tUser, "Get Pizza2", Color3.fromRGB(200, 120, 50), function() GetTool("Pizza2") end)
 CreateButton(tUser, "Get Pizza1", Color3.fromRGB(200, 120, 50), function() GetTool("Pizza1") end)
 CreateButton(tUser, "Get Key", Color3.fromRGB(30, 50, 25), function() GetTool("Key") end)
-
+CreateButton(tUser, "Get Hammer", Color3.fromRGB(30, 80, 40), function()
+    game.ReplicatedStorage.RemoteEvents.BasementWeapon:FireServer(true, "Hammer")
+end)
 
 local foodItems = {
     {"Apple", Color3.fromRGB(200, 50, 50)},
@@ -300,11 +303,10 @@ catJumpBtn.MouseButton1Click:Connect(function()
         catJumpBtn.Text = "Cat Jump: ON"
         catJumpBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
         
-        -- Запускаем бесконечный цикл CatJump
         catJumpConnection = task.spawn(function()
             while catJumpEnabled do
                 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("CatJumped"):FireServer()
-                task.wait(0.05) -- Пауза 0.05 секунды между прыжками
+                task.wait(0.05)
             end
         end)
     else
@@ -328,7 +330,6 @@ healBtn.MouseButton1Click:Connect(function()
         healBtn.Text = "Heal: ON"
         healBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
         
-        -- Запускаем цикл хила
         healConnection = task.spawn(function()
             while healEnabled do
                 for i = 1, 200 do
@@ -353,6 +354,120 @@ end)
 CreateButton(tMisc, "Give Ladder", Color3.fromRGB(50, 100, 200), function()
     local args = {1}
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Ladder"):FireServer(unpack(args))
+end)
+
+-- Auto OpenFront Toggle
+local autoOpenFrontEnabled = false
+local autoOpenFrontConnection = nil
+local autoOpenFrontBtn = CreateButton(tMisc, "Auto OpenFront: OFF", Color3.fromRGB(70, 70, 70), function() end)
+
+autoOpenFrontBtn.MouseButton1Click:Connect(function()
+    autoOpenFrontEnabled = not autoOpenFrontEnabled
+    if autoOpenFrontEnabled then
+        autoOpenFrontBtn.Text = "Auto OpenFront: ON"
+        autoOpenFrontBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        
+        autoOpenFrontConnection = task.spawn(function()
+            while autoOpenFrontEnabled do
+                local args = {"Front"}
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Door"):FireServer(unpack(args))
+                task.wait(3)
+            end
+        end)
+    else
+        autoOpenFrontBtn.Text = "Auto OpenFront: OFF"
+        autoOpenFrontBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        if autoOpenFrontConnection then
+            task.cancel(autoOpenFrontConnection)
+            autoOpenFrontConnection = nil
+        end
+    end
+end)
+
+-- Open Basement Button
+CreateButton(tMisc, "Open Basement", Color3.fromRGB(100, 80, 200), function()
+    local char = Player.Character
+    local originalCFrame = char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.CFrame
+    
+    -- Выдаем Key
+    RS.RemoteEvents.GiveTool:FireServer("Key")
+    task.wait(0.5)
+    
+    -- Экипируем Key
+    local key = Player.Backpack:WaitForChild("Key")
+    local args = {"Equip", key}
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer(unpack(args))
+    task.wait(0.5)
+    
+    -- Телепортируем
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(28.9161663, 3.56029963, -187.769989, -0.0267044585, -0.00717567047, -0.999617636, 0.000546747586, 0.999973953, -0.00719283475, 0.999643207, -0.000738619303, -0.026699841)
+    end
+    
+    -- Ждем 2 секунды
+    task.wait(2)
+    
+    -- Возвращаем обратно
+    if originalCFrame and char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = originalCFrame
+    end
+end)
+
+-- Open Attic Button
+CreateButton(tMisc, "Open Attic", Color3.fromRGB(150, 100, 50), function()
+    -- Выдаем лестницу
+    local args = {1}
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Ladder"):FireServer(unpack(args))
+    task.wait(0.5)
+    
+    -- Телепортируем
+    local char = Player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(-19.7859402, 19.4470539, -225.477798, 0.919709146, -1.09539059e-07, 0.392600417, 9.91085827e-08, 1, 4.68363979e-08, -0.392600417, -4.16579482e-09, 0.919709146)
+    end
+    
+    -- Кликаем в центр экрана 2 секунды
+    local mouse = Player:GetMouse()
+    local clickStartTime = tick()
+    while tick() - clickStartTime < 2 do
+        local clickEvent = {
+            Target = nil,
+            Position = mouse.Hit.p,
+            UnitRay = Ray.new(mouse.UnitRay.Origin, mouse.UnitRay.Direction),
+            UserInputState = Enum.UserInputState.Begin,
+            UserInputType = Enum.UserInputType.MouseButton1
+        }
+        game:GetService("ContextActionService"):FireInputBegan(mouse, clickEvent)
+        task.wait(0.05)
+    end
+end)
+
+-- Auto BasementOpen Toggle
+local autoBasementOpenEnabled = false
+local autoBasementOpenConnection = nil
+local autoBasementOpenBtn = CreateButton(tMisc, "Auto BasementOpen: OFF", Color3.fromRGB(70, 70, 70), function() end)
+
+autoBasementOpenBtn.MouseButton1Click:Connect(function()
+    autoBasementOpenEnabled = not autoBasementOpenEnabled
+    if autoBasementOpenEnabled then
+        autoBasementOpenBtn.Text = "Auto BasementOpen: ON"
+        autoBasementOpenBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        
+        autoBasementOpenConnection = task.spawn(function()
+            while autoBasementOpenEnabled do
+                local args = {"Basement"}
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Door"):FireServer(unpack(args))
+                task.wait(3)
+            end
+        end)
+    else
+        autoBasementOpenBtn.Text = "Auto BasementOpen: OFF"
+        autoBasementOpenBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        if autoBasementOpenConnection then
+            task.cancel(autoBasementOpenConnection)
+            autoBasementOpenConnection = nil
+        end
+    end
 end)
 
 -- Вкладка SETTINGS
