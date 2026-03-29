@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://paste.sensio.no/PresumeInstruct",
+loadstring(game:HttpGet("https://paste.sensio.no/WharfEpisodes",
 true))()
