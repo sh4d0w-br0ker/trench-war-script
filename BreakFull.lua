@@ -196,7 +196,7 @@ CreateButton(tLobby, "Get Hungry", Color3.fromRGB(150, 80, 90), function()
 end)
 
 CreateButton(tLobby, "Get Medic", Color3.fromRGB(200, 87, 100), function()
-    RS.RemoteEvents.OutsideRole:FireServer("Medkit", true)
+    RS.RemoteEvents.OutsideRole:FireServer("MedKit", true)
 end)
 
 CreateButton(tLobby, "Get batuser", Color3.fromRGB(99, 100, 70), function()
