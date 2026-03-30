@@ -572,27 +572,18 @@ CreateButton(tMisc, "Find Safe", Color3.fromRGB(120, 120, 200), function()
     local house = workspace:FindFirstChild("TheHouse")
     if not house then return end
 
-    local folder = house:GetChildren()[9]
-    if not folder then return end
-
-    local mouse = Player:GetMouse()
-
-    for _, obj in pairs(folder:GetDescendants()) do
-        if obj:IsA("BasePart") then
+    for _, obj in pairs(house:GetDescendants()) do
+        if obj.Name == "Painting" then
             
-            for i = 1, 9 do
-                local clickEvent = {
-                    Target = obj,
-                    Position = obj.Position,
-                    UnitRay = Ray.new(obj.Position, Vector3.new(0, -1, 0)),
-                    UserInputState = Enum.UserInputState.Begin,
-                    UserInputType = Enum.UserInputType.MouseButton1
-                }
+            local click = obj:FindFirstChildOfClass("ClickDetector")
+            if click then
+                
+                for i = 1, 9 do
+                    fireclickdetector(click)
+                    task.wait(0.01)
+                end
 
-                game:GetService("ContextActionService"):FireInputBegan(mouse, clickEvent)
-                task.wait(0.01) -- очень быстро, но не убивает игру
             end
-
         end
     end
 end)
