@@ -568,49 +568,32 @@ CreateButton(tMisc, "Open Attic", Color3.fromRGB(150, 100, 50), function()
 end)
 
 -- Find safe
-
 CreateButton(tMisc, "Find Safe", Color3.fromRGB(120, 120, 200), function()
     local house = workspace:FindFirstChild("TheHouse")
     if not house then return end
 
-    local targetPart = nil
+    local folder = house:GetChildren()[9]
+    if not folder then return end
 
-    -- ищем сейф по структуре
-    for _, obj in pairs(house:GetDescendants()) do
-        if obj.Name == "Union" and obj.Parent and obj.Parent.Name == "Door" then
-            targetPart = obj
-            break
-        end
-    end
-
-    if not targetPart then
-        warn("Safe not found")
-        return
-    end
-
-    local char = Player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        -- телепорт перед сейфом
-        char.HumanoidRootPart.CFrame = targetPart.CFrame * CFrame.new(0, 0, -3)
-    end
-
-    task.wait(0.5)
-
-    -- клик 4 секунды
     local mouse = Player:GetMouse()
-    local startTime = tick()
 
-    while tick() - startTime < 4 do
-        local clickEvent = {
-            Target = targetPart,
-            Position = targetPart.Position,
-            UnitRay = Ray.new(targetPart.Position, Vector3.new(0, -1, 0)),
-            UserInputState = Enum.UserInputState.Begin,
-            UserInputType = Enum.UserInputType.MouseButton1
-        }
+    for _, obj in pairs(folder:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            
+            for i = 1, 9 do
+                local clickEvent = {
+                    Target = obj,
+                    Position = obj.Position,
+                    UnitRay = Ray.new(obj.Position, Vector3.new(0, -1, 0)),
+                    UserInputState = Enum.UserInputState.Begin,
+                    UserInputType = Enum.UserInputType.MouseButton1
+                }
 
-        game:GetService("ContextActionService"):FireInputBegan(mouse, clickEvent)
-        task.wait(0.05)
+                game:GetService("ContextActionService"):FireInputBegan(mouse, clickEvent)
+                task.wait(0.01) -- очень быстро, но не убивает игру
+            end
+
+        end
     end
 end)
 
