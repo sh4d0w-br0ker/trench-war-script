@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://paste.sensio.no/LoggedGutted",
+loadstring(game:HttpGet("https://paste.sensio.no/PacketsScars",
 true))()
