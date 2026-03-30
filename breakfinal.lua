@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://paste.sensio.no/FloydWestley",
+loadstring(game:HttpGet("https://paste.sensio.no/SlidingScamming",
 true))()
