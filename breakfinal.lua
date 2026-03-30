@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://paste.sensio.no/SlidingScamming",
+loadstring(game:HttpGet("https://paste.sensio.no/LoggedGutted",
 true))()
