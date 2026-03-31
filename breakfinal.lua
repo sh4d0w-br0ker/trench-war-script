@@ -1,2 +1,2 @@
-loadstring(game:HttpGet("https://paste.sensio.no/TermitesComposer",
+loadstring(game:HttpGet("https://paste.sensio.no/MartinezGiorno",
 true))()
