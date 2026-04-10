@@ -4,7 +4,6 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 
--- Видалення старої копії
 if Player.PlayerGui:FindFirstChild("RemoteExplorer") then
     Player.PlayerGui.RemoteExplorer:Destroy()
 end
@@ -15,7 +14,6 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 100
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
--- Функция для всплывающего уведомления
 local function ShowNotification(message, isError)
     local notif = Instance.new("Frame")
     notif.Size = UDim2.new(0, 250, 0, 40)
@@ -45,9 +43,8 @@ local function ShowNotification(message, isError)
     end)
 end
 
--- Копирование в буфер
 local function CopyToClipboard(text)
-    local success, err = pcall(function()
+    local success = pcall(function()
         setclipboard(text)
     end)
     if success then
@@ -63,11 +60,10 @@ local function CopyToClipboard(text)
         task.wait(0.1)
         TextCopy:ReleaseFocus()
         TextCopy:Destroy()
-        ShowNotification("Copy manually: " .. text, false)
+        ShowNotification("Copy manually", false)
     end
 end
 
--- ГОЛОВНЕ ВІКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 350, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
@@ -81,7 +77,6 @@ MainFrame.ClipsDescendants = true
 local UICorner = Instance.new("UICorner", MainFrame)
 UICorner.CornerRadius = UDim.new(0, 8)
 
--- ЗВЕЗДЫ
 local StarsContainer = Instance.new("Frame")
 StarsContainer.Size = UDim2.new(1, 0, 1, 0)
 StarsContainer.BackgroundTransparency = 1
@@ -100,7 +95,6 @@ for i = 1, 100 do
     table.insert(stars, star)
 end
 
--- ХЕДЕР
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 35)
 Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -137,7 +131,6 @@ MinimizeBtn.TextColor3 = Color3.new(0.8, 0.8, 0.8)
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Parent = Header
 
--- САЙДБАР
 local Side = Instance.new("Frame")
 Side.Size = UDim2.new(0, 90, 1, -35)
 Side.Position = UDim2.new(0, 0, 0, 35)
@@ -151,7 +144,6 @@ Container.Position = UDim2.new(0, 95, 0, 40)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
--- ЛОГІКА ЗГОРТАННЯ
 local isMinimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -216,10 +208,8 @@ end
 Instance.new("UIListLayout", Side).Padding = UDim.new(0, 5)
 Instance.new("UIPadding", Side).PaddingLeft = UDim.new(0, 5)
 
--- Функция генерации аргументов по имени
 local function GenerateArgsFromName(remoteName)
     local name = remoteName:lower()
-    
     if name:find("item") or name:find("tool") or name:find("give") then
         return {"DefaultTool"}
     elseif name:find("door") then
@@ -251,10 +241,8 @@ local function GenerateArgsFromName(remoteName)
     end
 end
 
--- Функция для поиска ремувента ВЕЗДЕ
 local function FindRemoteInGame(remoteName, remoteType)
     local services = {game.Workspace, game.Lighting, game.ReplicatedStorage, game.ServerStorage, game.Players}
-    
     local function search(parent)
         for _, child in pairs(parent:GetChildren()) do
             if remoteType == "Event" and child:IsA("RemoteEvent") and child.Name == remoteName then
@@ -268,15 +256,13 @@ local function FindRemoteInGame(remoteName, remoteType)
         end
         return nil
     end
-    
     for _, service in pairs(services) do
         local found = search(service)
-        if found then return found, service.Name end
+        if found then return found end
     end
-    return nil, nil
+    return nil
 end
 
--- Функция для создания плавающего окна
 local function CreateFloatWindow(title, remoteType, fullPath)
     local FloatFrame = Instance.new("Frame")
     FloatFrame.Size = UDim2.new(0, 350, 0, 250)
@@ -291,7 +277,6 @@ local function CreateFloatWindow(title, remoteType, fullPath)
     local FloatCorner = Instance.new("UICorner", FloatFrame)
     FloatCorner.CornerRadius = UDim.new(0, 8)
     
-    -- Заголовок
     local FloatHeader = Instance.new("Frame")
     FloatHeader.Size = UDim2.new(1, 0, 0, 30)
     FloatHeader.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
@@ -328,7 +313,6 @@ local function CreateFloatWindow(title, remoteType, fullPath)
     FloatClose.BackgroundTransparency = 1
     FloatClose.Parent = FloatHeader
     
-    -- Контент
     local FloatContent = Instance.new("Frame")
     FloatContent.Size = UDim2.new(1, -20, 1, -50)
     FloatContent.Position = UDim2.new(0, 10, 0, 40)
@@ -365,11 +349,7 @@ local function CreateFloatWindow(title, remoteType, fullPath)
     local FireBtn = Instance.new("TextButton")
     FireBtn.Size = UDim2.new(0.48, 0, 0, 35)
     FireBtn.Position = UDim2.new(0, 0, 0, 130)
-    if remoteType == "Event" then
-        FireBtn.Text = "Fire Event"
-    else
-        FireBtn.Text = "Call Function"
-    end
+    FireBtn.Text = remoteType == "Event" and "Fire Event" or "Call Function"
     FireBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
     FireBtn.Font = Enum.Font.GothamSemibold
     FireBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -418,97 +398,77 @@ local function CreateFloatWindow(title, remoteType, fullPath)
         FloatFrame:Destroy()
     end)
     
-    -- Генерация аргументов
     GenerateBtn.MouseButton1Click:Connect(function()
         local args = GenerateArgsFromName(title)
-        
         local jsonArgs = {}
         for _, v in ipairs(args) do
             if type(v) == "string" then
                 jsonArgs[#jsonArgs + 1] = '"' .. v .. '"'
-            elseif type(v) == "number" then
-                jsonArgs[#jsonArgs + 1] = tostring(v)
-            elseif type(v) == "boolean" then
-                jsonArgs[#jsonArgs + 1] = tostring(v)
             else
-                jsonArgs[#jsonArgs + 1] = '"' .. tostring(v) .. '"'
+                jsonArgs[#jsonArgs + 1] = tostring(v)
             end
         end
-        
         TextBox.Text = "[" .. table.concat(jsonArgs, ", ") .. "]"
         ShowNotification("Args generated!", false)
     end)
     
-    -- Copy Path
     CopyBtn.MouseButton1Click:Connect(function()
-        local copyText
-        if remoteType == "Event" then
-            copyText = fullPath .. ':FireServer()'
-        else
-            copyText = fullPath .. ':InvokeServer()'
-        end
+        local copyText = remoteType == "Event" and (fullPath .. ':FireServer()') or (fullPath .. ':InvokeServer()')
         CopyToClipboard(copyText)
     end)
     
-    -- Fire/Call
     FireBtn.MouseButton1Click:Connect(function()
         local success, args = pcall(function()
             return game:GetService("HttpService"):JSONDecode(TextBox.Text)
         end)
-        
         if not success then
-            ShowNotification("Invalid JSON! Use: [\"value\", 123]", true)
+            ShowNotification("Invalid JSON!", true)
             return
         end
-        
-        local target, serviceName = FindRemoteInGame(title, remoteType)
-        
+        local target = FindRemoteInGame(title, remoteType)
         if target then
-            local success2, err = pcall(function()
+            local ok, err = pcall(function()
                 if remoteType == "Event" then
                     target:FireServer(unpack(args))
                 else
                     target:InvokeServer(unpack(args))
                 end
             end)
-            if success2 then
+            if ok then
                 ShowNotification("Successfully executed!", false)
             else
                 ShowNotification("Error: " .. tostring(err), true)
             end
         else
-            ShowNotification("Remote not found in game!", true)
+            ShowNotification("Remote not found!", true)
         end
     end)
     
     return FloatFrame
 end
 
--- Вкладка INFO
+-- INFO TAB
 local tInfo = CreateTab("Info")
 local itxt = Instance.new("TextLabel", tInfo)
-itxt.Size = UDim2.new(1,0,0,100)
-itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nTool for finding vulnerabilities\nScans: Workspace, Lighting,\nReplicatedStorage, ServerStorage,\nPlayers"
+itxt.Size = UDim2.new(1,0,0,120)
+itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nScans: Workspace, Lighting,\nReplicatedStorage, ServerStorage,\nPlayers"
 itxt.TextColor3 = Color3.new(1,1,1)
 itxt.BackgroundTransparency = 1
 itxt.Font = Enum.Font.Gotham
 
--- Вкладка SPY
+-- SPY TAB
 local tSpy = CreateTab("Spy")
-
 CreateButton(tSpy, "Get Cobalt", Color3.fromRGB(80, 150, 200), function()
     ShowNotification("Loading Cobalt...", false)
     loadstring(game:HttpGet("https://github.com/notpoiu/cobalt/releases/latest/download/Cobalt.luau"))()
 end)
-
 CreateButton(tSpy, "Get Infinite Yield", Color3.fromRGB(200, 150, 50), function()
     ShowNotification("Loading Infinite Yield...", false)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
 
--- Вкладка EVENTS - ИЩЕТ ВО ВСЕЙ ИГРЕ
+-- EVENTS TAB (scans everything)
 local tEvents = CreateTab("Events")
-
 local eventsContainer = Instance.new("ScrollingFrame")
 eventsContainer.Size = UDim2.new(1, 0, 1, 0)
 eventsContainer.BackgroundTransparency = 1
@@ -516,9 +476,7 @@ eventsContainer.ScrollBarThickness = 4
 eventsContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
 eventsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
 eventsContainer.Parent = tEvents
-
-local eventsLayout = Instance.new("UIListLayout", eventsContainer)
-eventsLayout.Padding = UDim.new(0, 3)
+Instance.new("UIListLayout", eventsContainer).Padding = UDim.new(0, 3)
 
 local eventsLabel = Instance.new("TextLabel")
 eventsLabel.Size = UDim2.new(1, 0, 0, 25)
@@ -528,23 +486,21 @@ eventsLabel.BackgroundTransparency = 1
 eventsLabel.Font = Enum.Font.GothamBold
 eventsLabel.Parent = eventsContainer
 
--- Поиск ВЕЗДЕ
-local function FindAllEventsInGame(parent, path, results)
+local function FindAllEvents(parent, path, results)
     for _, child in pairs(parent:GetChildren()) do
         local newPath = path .. "/" .. child.Name
         if child:IsA("RemoteEvent") then
             table.insert(results, {name = child.Name, path = newPath})
         elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
-            FindAllEventsInGame(child, newPath, results)
+            FindAllEvents(child, newPath, results)
         end
     end
 end
 
 local allEvents = {}
 local services = {game.Workspace, game.Lighting, game.ReplicatedStorage, game.ServerStorage, game.Players}
-
 for _, service in pairs(services) do
-    FindAllEventsInGame(service, service.Name, allEvents)
+    FindAllEvents(service, service.Name, allEvents)
 end
 
 if #allEvents > 0 then
@@ -558,7 +514,6 @@ if #allEvents > 0 then
         btn.TextSize = 10
         btn.Parent = eventsContainer
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-        
         btn.MouseButton1Click:Connect(function()
             CreateFloatWindow(ev.name, "Event", ev.path)
         end)
@@ -572,9 +527,8 @@ else
     nothing.Parent = eventsContainer
 end
 
--- Вкладка FUNCTIONS - ИЩЕТ ВО ВСЕЙ ИГРЕ
+-- FUNCTIONS TAB (scans everything)
 local tFunctions = CreateTab("Functions")
-
 local functionsContainer = Instance.new("ScrollingFrame")
 functionsContainer.Size = UDim2.new(1, 0, 1, 0)
 functionsContainer.BackgroundTransparency = 1
@@ -582,9 +536,7 @@ functionsContainer.ScrollBarThickness = 4
 functionsContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
 functionsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
 functionsContainer.Parent = tFunctions
-
-local functionsLayout = Instance.new("UIListLayout", functionsContainer)
-functionsLayout.Padding = UDim.new(0, 3)
+Instance.new("UIListLayout", functionsContainer).Padding = UDim.new(0, 3)
 
 local functionsLabel = Instance.new("TextLabel")
 functionsLabel.Size = UDim2.new(1, 0, 0, 25)
@@ -594,21 +546,20 @@ functionsLabel.BackgroundTransparency = 1
 functionsLabel.Font = Enum.Font.GothamBold
 functionsLabel.Parent = functionsContainer
 
-local function FindAllFunctionsInGame(parent, path, results)
+local function FindAllFunctions(parent, path, results)
     for _, child in pairs(parent:GetChildren()) do
         local newPath = path .. "/" .. child.Name
         if child:IsA("RemoteFunction") then
             table.insert(results, {name = child.Name, path = newPath})
         elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
-            FindAllFunctionsInGame(child, newPath, results)
+            FindAllFunctions(child, newPath, results)
         end
     end
 end
 
 local allFunctions = {}
-
 for _, service in pairs(services) do
-    FindAllFunctionsInGame(service, service.Name, allFunctions)
+    FindAllFunctions(service, service.Name, allFunctions)
 end
 
 if #allFunctions > 0 then
@@ -622,7 +573,6 @@ if #allFunctions > 0 then
         btn.TextSize = 10
         btn.Parent = functionsContainer
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-        
         btn.MouseButton1Click:Connect(function()
             CreateFloatWindow(fn.name, "Function", fn.path)
         end)
@@ -636,7 +586,7 @@ else
     nothing.Parent = functionsContainer
 end
 
--- Вкладка SETTINGS
+-- SETTINGS TAB
 local tSettings = CreateTab("Settings")
 
 local function UpdateTheme(color)
