@@ -4,7 +4,6 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 
--- Видалення старої копії
 if Player.PlayerGui:FindFirstChild("RemoteExplorer") then
     Player.PlayerGui.RemoteExplorer:Destroy()
 end
@@ -15,7 +14,6 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 100
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
--- Функция для всплывающего уведомления
 local function ShowNotification(message, isError)
     local notif = Instance.new("Frame")
     notif.Size = UDim2.new(0, 250, 0, 40)
@@ -45,7 +43,6 @@ local function ShowNotification(message, isError)
     end)
 end
 
--- Копирование в буфер
 local function CopyToClipboard(text)
     local success = pcall(function()
         setclipboard(text)
@@ -67,7 +64,6 @@ local function CopyToClipboard(text)
     end
 end
 
--- ГОЛОВНЕ ВІКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 350, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
@@ -81,7 +77,6 @@ MainFrame.ClipsDescendants = true
 local UICorner = Instance.new("UICorner", MainFrame)
 UICorner.CornerRadius = UDim.new(0, 8)
 
--- ЗВЕЗДЫ
 local StarsContainer = Instance.new("Frame")
 StarsContainer.Size = UDim2.new(1, 0, 1, 0)
 StarsContainer.BackgroundTransparency = 1
@@ -100,7 +95,6 @@ for i = 1, 100 do
     table.insert(stars, star)
 end
 
--- ХЕДЕР
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 35)
 Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -137,7 +131,6 @@ MinimizeBtn.TextColor3 = Color3.new(0.8, 0.8, 0.8)
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Parent = Header
 
--- САЙДБАР
 local Side = Instance.new("Frame")
 Side.Size = UDim2.new(0, 90, 1, -35)
 Side.Position = UDim2.new(0, 0, 0, 35)
@@ -151,7 +144,6 @@ Container.Position = UDim2.new(0, 95, 0, 40)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
--- ЛОГІКА ЗГОРТАННЯ
 local isMinimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -216,7 +208,6 @@ end
 Instance.new("UIListLayout", Side).Padding = UDim.new(0, 5)
 Instance.new("UIPadding", Side).PaddingLeft = UDim.new(0, 5)
 
--- Функция генерации аргументов по имени
 local function GenerateArgsFromName(remoteName)
     local name = remoteName:lower()
     if name:find("item") or name:find("tool") or name:find("give") then
@@ -250,22 +241,24 @@ local function GenerateArgsFromName(remoteName)
     end
 end
 
--- Функция для поиска ремувента по имени во всей игре
 local function FindRemoteInGame(remoteName, remoteType)
-    local services = {game.Workspace, game.Lighting, game.ReplicatedStorage, game.ServerStorage}
+    local services = {game.Workspace, game.Lighting, game.ReplicatedStorage}
     local function search(parent)
         if not parent then return nil end
-        for _, child in pairs(parent:GetChildren()) do
-            if remoteType == "Event" and child:IsA("RemoteEvent") and child.Name == remoteName then
-                return child
-            elseif remoteType == "Function" and child:IsA("RemoteFunction") and child.Name == remoteName then
-                return child
-            elseif child:IsA("Folder") or child:IsA("Model") then
-                local found = search(child)
-                if found then return found end
+        local success, result = pcall(function()
+            for _, child in pairs(parent:GetChildren()) do
+                if remoteType == "Event" and child:IsA("RemoteEvent") and child.Name == remoteName then
+                    return child
+                elseif remoteType == "Function" and child:IsA("RemoteFunction") and child.Name == remoteName then
+                    return child
+                elseif child:IsA("Folder") or child:IsA("Model") then
+                    local found = search(child)
+                    if found then return found end
+                end
             end
-        end
-        return nil
+            return nil
+        end)
+        return success and result or nil
     end
     for _, service in pairs(services) do
         if service then
@@ -276,7 +269,6 @@ local function FindRemoteInGame(remoteName, remoteType)
     return nil
 end
 
--- Функция для создания плавающего окна
 local function CreateFloatWindow(title, remoteType, fullPath)
     local FloatFrame = Instance.new("Frame")
     FloatFrame.Size = UDim2.new(0, 350, 0, 250)
@@ -461,16 +453,16 @@ local function CreateFloatWindow(title, remoteType, fullPath)
     return FloatFrame
 end
 
--- Вкладка INFO
+-- INFO TAB
 local tInfo = CreateTab("Info")
 local itxt = Instance.new("TextLabel", tInfo)
 itxt.Size = UDim2.new(1,0,0,120)
-itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nScans: Workspace, Lighting,\nReplicatedStorage, ServerStorage"
+itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nScans: Workspace, Lighting,\nReplicatedStorage"
 itxt.TextColor3 = Color3.new(1,1,1)
 itxt.BackgroundTransparency = 1
 itxt.Font = Enum.Font.Gotham
 
--- Вкладка SPY
+-- SPY TAB
 local tSpy = CreateTab("Spy")
 CreateButton(tSpy, "Get Cobalt", Color3.fromRGB(80, 150, 200), function()
     ShowNotification("Loading Cobalt...", false)
@@ -481,7 +473,7 @@ CreateButton(tSpy, "Get Infinite Yield", Color3.fromRGB(200, 150, 50), function(
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
 
--- Вкладка EVENTS
+-- EVENTS TAB
 local tEvents = CreateTab("Events")
 local eventsContainer = Instance.new("ScrollingFrame")
 eventsContainer.Size = UDim2.new(1, 0, 1, 0)
@@ -502,18 +494,23 @@ eventsLabel.Parent = eventsContainer
 
 local function FindAllEvents(parent, path, results)
     if not parent then return end
-    for _, child in pairs(parent:GetChildren()) do
-        local newPath = path .. "/" .. child.Name
-        if child:IsA("RemoteEvent") then
-            table.insert(results, {name = child.Name, path = newPath})
-        elseif child:IsA("Folder") or child:IsA("Model") then
-            FindAllEvents(child, newPath, results)
+    local success = pcall(function()
+        for _, child in pairs(parent:GetChildren()) do
+            local newPath = path .. "/" .. child.Name
+            if child:IsA("RemoteEvent") then
+                table.insert(results, {name = child.Name, path = newPath})
+            elseif child:IsA("Folder") or child:IsA("Model") then
+                FindAllEvents(child, newPath, results)
+            end
         end
+    end)
+    if not success then
+        warn("Error scanning:", parent.Name)
     end
 end
 
 local allEvents = {}
-local services = {game.ReplicatedStorage, game.Workspace, game.Lighting, game.ServerStorage}
+local services = {game.ReplicatedStorage, game.Workspace, game.Lighting}
 for _, service in pairs(services) do
     if service then
         FindAllEvents(service, service.Name, allEvents)
@@ -544,7 +541,7 @@ else
     nothing.Parent = eventsContainer
 end
 
--- Вкладка FUNCTIONS
+-- FUNCTIONS TAB
 local tFunctions = CreateTab("Functions")
 local functionsContainer = Instance.new("ScrollingFrame")
 functionsContainer.Size = UDim2.new(1, 0, 1, 0)
@@ -565,13 +562,18 @@ functionsLabel.Parent = functionsContainer
 
 local function FindAllFunctions(parent, path, results)
     if not parent then return end
-    for _, child in pairs(parent:GetChildren()) do
-        local newPath = path .. "/" .. child.Name
-        if child:IsA("RemoteFunction") then
-            table.insert(results, {name = child.Name, path = newPath})
-        elseif child:IsA("Folder") or child:IsA("Model") then
-            FindAllFunctions(child, newPath, results)
+    local success = pcall(function()
+        for _, child in pairs(parent:GetChildren()) do
+            local newPath = path .. "/" .. child.Name
+            if child:IsA("RemoteFunction") then
+                table.insert(results, {name = child.Name, path = newPath})
+            elseif child:IsA("Folder") or child:IsA("Model") then
+                FindAllFunctions(child, newPath, results)
+            end
         end
+    end)
+    if not success then
+        warn("Error scanning:", parent.Name)
     end
 end
 
@@ -606,7 +608,7 @@ else
     nothing.Parent = functionsContainer
 end
 
--- Вкладка SETTINGS
+-- SETTINGS TAB
 local tSettings = CreateTab("Settings")
 
 local function UpdateTheme(color)
