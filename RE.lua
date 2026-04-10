@@ -382,10 +382,10 @@ local function CreateFloatWindow(title, remoteType, fullPath)
         CopyToClipboard(copyText)
     end)
     
-    -- FIRE BUTTON - БЕЗ ПРОВЕРКИ НА JSON, ВЫПОЛНЯЕТ ЛЮБУЮ ХУЙНЮ
+    -- FIRE BUTTON - ЕБАНУТЫЙ ПРОСТОЙ ВАРИАНТ
     FireBtn.MouseButton1Click:Connect(function()
-        local args = {}
         local text = TextBox.Text
+        local args = {}
         
         if text == "" then
             args = {}
@@ -491,6 +491,67 @@ if #allEvents > 0 then
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
         btn.MouseButton1Click:Connect(function()
             CreateFloatWindow(ev.name, "Event", ev.path)
+        end)
+    end
+else
+    local nothing = Instance.new("TextLabel")
+    nothing.Size = UDim2.new(1,0,0,30)
+    nothing.Text = "No RemoteEvents found!"
+    nothing.TextColor3 = Color3.fromRGB(255,100,100)
+    nothing.BackgroundTransparency = 1
+    nothing.Parent = eventsContainer
+end
+
+local tFunctions = CreateTab("Functions")
+local functionsContainer = Instance.new("ScrollingFrame")
+functionsContainer.Size = UDim2.new(1,0,1,0)
+functionsContainer.BackgroundTransparency = 1
+functionsContainer.ScrollBarThickness = 4
+functionsContainer.CanvasSize = UDim2.new(0,0,0,0)
+functionsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+functionsContainer.Parent = tFunctions
+Instance.new("UIListLayout", functionsContainer).Padding = UDim.new(0,3)
+
+local functionsLabel = Instance.new("TextLabel")
+functionsLabel.Size = UDim2.new(1,0,0,25)
+functionsLabel.Text = "=== REMOTE FUNCTIONS ==="
+functionsLabel.TextColor3 = Color3.fromRGB(100,200,200)
+functionsLabel.BackgroundTransparency = 1
+functionsLabel.Font = Enum.Font.GothamBold
+functionsLabel.Parent = functionsContainer
+
+local function ScanForFunctions(parent, path, results)
+    if not parent then return end
+    for _, child in pairs(parent:GetChildren()) do
+        local newPath = path .. "/" .. child.Name
+        if child:IsA("RemoteFunction") then
+            table.insert(results, {name = child.Name, path = newPath})
+        elseif child:IsA("Folder") or child:IsA("Model") then
+            ScanForFunctions(child, newPath, results)
+        end
+    end
+end
+
+local allFunctions = {}
+for _, svc in pairs(scanServices) do
+    if svc then
+        ScanForFunctions(svc, svc.Name, allFunctions)
+    end
+end
+
+if #allFunctions > 0 then
+    for _, fn in pairs(allFunctions) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1,-5,0,30)
+        btn.Text = fn.name
+        btn.BackgroundColor3 = Color3.fromRGB(60,60,70)
+        btn.Font = Enum.Font.Gotham
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.TextSize = 11
+        btn.Parent = functionsContainer
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
+        btn.MouseButton1Click:Connect(function()
+            CreateFloatWindow(fn.name, "Function", fn.path)
         end)
     end
 else
