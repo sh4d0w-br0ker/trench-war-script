@@ -14,8 +14,7 @@ ScreenGui.Name = "VoidHubGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 100
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
-
--- ГОЛОВНЕ ВІКНО
+                                                                                   -- ГОЛОВНЕ ВІКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 350, 0, 380)
 MainFrame.Position = UDim2.new(0.5, -175, 0.5, -190)
@@ -38,8 +37,7 @@ StarsContainer.Parent = MainFrame
 local stars = {}
 for i = 1, 100 do
     local star = Instance.new("Frame")
-    star.Size = UDim2.new(0, math.random(1, 2), 0, math.random(1, 2))
-    star.Position = UDim2.new(math.random(), 0, math.random(), 0)
+    star.Size = UDim2.new(0, math.random(1, 2), 0, math.random(1, 2))                  star.Position = UDim2.new(math.random(), 0, math.random(), 0)
     star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     star.BackgroundTransparency = 0.5
     star.BorderSizePixel = 0
@@ -440,7 +438,6 @@ catJumpBtn.MouseButton1Click:Connect(function()
 end)
 
 -- Heal Toggle
-
 local healEnabled = false
 local healConnection = nil
 local healBtn = CreateButton(tMisc, "Heal: OFF", Color3.fromRGB(70, 70, 70), function() end)
@@ -542,29 +539,21 @@ end)
 
 -- Open Basement Button
 CreateButton(tMisc, "Open Basement", Color3.fromRGB(100, 80, 200), function()
-    local char = Player.Character
-    local originalCFrame = char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart.CFrame
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UnlockDoor"):FireServer()
+end)
 
-    RS.RemoteEvents.GiveTool:FireServer("Key")
-    task.wait(0.5)
+-- ScaryLarry End Button
+CreateButton(tMisc, "ScaryLarry End", Color3.fromRGB(180, 50, 180), function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("GetKeys"):FireServer()
+end)
 
-    local key = Player.Backpack:WaitForChild("Key")
-    local args = {"Equip", key}
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer(unpack(args))
-    task.wait(0.5)
-
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = CFrame.new(25.9161663, 3.56029963, -187.769989, -0.0267044585, -0.00717567047, -0.999617636, 0.000546747586, 0.999973953, -0.00719283475, 0.999643207, -0.000738619303, -0.026699841)
-    end
-
-    task.wait(2)
-
-    if originalCFrame and char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = originalCFrame
-    end
+-- Turn on basement Button
+CreateButton(tMisc, "Turn on basement", Color3.fromRGB(80, 150, 80), function()
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BasementMission"):FireServer()
 end)
 
 -- Open Attic Button
+
 CreateButton(tMisc, "Open Attic", Color3.fromRGB(150, 100, 50), function()
     local args = {1}
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Ladder"):FireServer(unpack(args))
