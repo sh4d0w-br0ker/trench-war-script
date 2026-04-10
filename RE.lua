@@ -507,6 +507,74 @@ else
     nothing.Parent = eventsContainer
 end
 
+-- ВКЛАДКА PLAYERS
+local tPlayers = CreateTab("Players")
+
+local playersContainer = Instance.new("ScrollingFrame")
+playersContainer.Size = UDim2.new(1, 0, 1, 0)
+playersContainer.BackgroundTransparency = 1
+playersContainer.ScrollBarThickness = 4
+playersContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+playersContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+playersContainer.Parent = tPlayers
+Instance.new("UIListLayout", playersContainer).Padding = UDim.new(0, 3)
+
+local playersLabel = Instance.new("TextLabel")
+playersLabel.Size = UDim2.new(1, 0, 0, 25)
+playersLabel.Text = "=== PLAYERS (REMOTES) ==="
+playersLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+playersLabel.BackgroundTransparency = 1
+playersLabel.Font = Enum.Font.GothamBold
+playersLabel.Parent = playersContainer
+
+local function ScanForRemotesInPlayers()
+    for _, plr in pairs(Players:GetPlayers()) do
+        local function searchInPlayer(parent, path)
+            for _, child in pairs(parent:GetChildren()) do
+                local newPath = path .. "/" .. child.Name
+                if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+                    local btn = Instance.new("TextButton")
+                    btn.Size = UDim2.new(1, -5, 0, 30)
+                    btn.Text = plr.Name .. ": " .. child.Name
+                    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+                    btn.Font = Enum.Font.Gotham
+                    btn.TextColor3 = Color3.new(1, 1, 1)
+                    btn.TextSize = 11
+                    btn.Parent = playersContainer
+                    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+                    
+                    local remoteType = child:IsA("RemoteEvent") and "Event" or "Function"
+                    btn.MouseButton1Click:Connect(function()
+                        CreateFloatWindow(child.Name, remoteType, newPath)
+                    end)
+                elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+                    searchInPlayer(child, newPath)
+                end
+            end
+        end
+        searchInPlayer(plr, "Players/" .. plr.Name)
+    end
+end
+
+ScanForRemotesInPlayers()
+
+-- Обновление при добавлении/удалении игроков
+Players.PlayerAdded:Connect(function()
+    for _, v in pairs(playersContainer:GetChildren()) do
+        if v:IsA("TextButton") then v:Destroy() end
+    end
+    playersLabel.Parent = playersContainer
+    ScanForRemotesInPlayers()
+end)
+
+Players.PlayerRemoving:Connect(function()
+    for _, v in pairs(playersContainer:GetChildren()) do
+        if v:IsA("TextButton") then v:Destroy() end
+    end
+    playersLabel.Parent = playersContainer
+    ScanForRemotesInPlayers()
+end)
+
 local tFunctions = CreateTab("Functions")
 local functionsContainer = Instance.new("ScrollingFrame")
 functionsContainer.Size = UDim2.new(1,0,1,0)
@@ -568,6 +636,131 @@ else
     nothing.BackgroundTransparency = 1
     nothing.Parent = functionsContainer
 end
+
+-- ВКЛАДКА CONSOLE
+local tConsole = CreateTab("Console")
+
+-- Окно логов (справа)
+local consoleFrame = Instance.new("Frame")
+consoleFrame.Size = UDim2.new(1, -10, 1, -10)
+consoleFrame.Position = UDim2.new(0, 5, 0, 5)
+consoleFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+consoleFrame.BorderSizePixel = 0
+consoleFrame.Parent = tConsole
+Instance.new("UICorner", consoleFrame).CornerRadius = UDim.new(0, 6)
+
+local consoleScroll = Instance.new("ScrollingFrame")
+consoleScroll.Size = UDim2.new(1, -10, 1, -10)
+consoleScroll.Position = UDim2.new(0, 5, 0, 5)
+consoleScroll.BackgroundTransparency = 1
+consoleScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+consoleScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+consoleScroll.ScrollBarThickness = 6
+consoleScroll.Parent = consoleFrame
+
+local consoleLayout = Instance.new("UIListLayout", consoleScroll)
+consoleLayout.Padding = UDim.new(0, 2)
+
+-- Функция добавления лога
+local function AddLog(message, color)
+    local logLine = Instance.new("TextLabel")
+    logLine.Size = UDim2.new(1, -10, 0, 20)
+    logLine.Text = "[" .. os.date("%H:%M:%S") .. "] " .. message
+    logLine.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+    logLine.BackgroundTransparency = 1
+    logLine.Font = Enum.Font.Gotham
+    logLine.TextSize = 11
+    logLine.TextXAlignment = Enum.TextXAlignment.Left
+    logLine.Parent = consoleScroll
+    Instance.new("UICorner", logLine).CornerRadius = UDim.new(0, 4)
+    
+    -- Автоскролл вниз
+    task.wait(0.05)
+    consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.CanvasSize.Y.Offset)
+end
+
+-- Кнопка очистки
+local clearConsoleBtn = Instance.new("TextButton")
+clearConsoleBtn.Size = UDim2.new(0, 80, 0, 25)
+clearConsoleBtn.Position = UDim2.new(1, -85, 0, 5)
+clearConsoleBtn.Text = "Clear"
+clearConsoleBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+clearConsoleBtn.Font = Enum.Font.GothamSemibold
+clearConsoleBtn.TextColor3 = Color3.new(1, 1, 1)
+clearConsoleBtn.TextSize = 11
+clearConsoleBtn.Parent = consoleFrame
+Instance.new("UICorner", clearConsoleBtn).CornerRadius = UDim.new(0, 4)
+clearConsoleBtn.MouseButton1Click:Connect(function()
+    for _, v in pairs(consoleScroll:GetChildren()) do
+        if v:IsA("TextLabel") then v:Destroy() end
+    end
+    AddLog("Console cleared", Color3.fromRGB(255, 200, 100))
+end)
+
+-- Перехват print
+local oldPrint = print
+print = function(...)
+    local args = {...}
+    local msg = ""
+    for _, v in pairs(args) do
+        msg = msg .. tostring(v) .. " "
+    end
+    AddLog(msg, Color3.fromRGB(200, 200, 200))
+    oldPrint(...)
+end
+
+-- Перехват warn
+local oldWarn = warn
+warn = function(...)
+    local args = {...}
+    local msg = ""
+    for _, v in pairs(args) do
+        msg = msg .. tostring(v) .. " "
+    end
+    AddLog("[WARN] " .. msg, Color3.fromRGB(255, 200, 100))
+    oldWarn(...)
+end
+
+-- Перехват ошибок
+local oldErrorHandler = error
+error = function(msg, level)
+    AddLog("[ERROR] " .. tostring(msg), Color3.fromRGB(255, 100, 100))
+    return oldErrorHandler(msg, level)
+end
+
+-- Перехват RemoteEvent/RemoteFunction вызовов
+local function hookRemotesForConsole()
+    local oldFire = hookfunction(Instance.new("RemoteEvent").FireServer, function(self, ...)
+        if not checkcaller() then
+            local args = {...}
+            local argStr = ""
+            for i, v in pairs(args) do
+                argStr = argStr .. tostring(v)
+                if i < #args then argStr = argStr .. ", " end
+            end
+            AddLog("[REMOTE] " .. self.Name .. ":FireServer(" .. argStr .. ")", Color3.fromRGB(100, 200, 255))
+        end
+        return oldFire(self, ...)
+    end)
+    
+    local oldInvoke = hookfunction(Instance.new("RemoteFunction").InvokeServer, function(self, ...)
+        if not checkcaller() then
+            local args = {...}
+            local argStr = ""
+            for i, v in pairs(args) do
+                argStr = argStr .. tostring(v)
+                if i < #args then argStr = argStr .. ", " end
+            end
+            AddLog("[REMOTE] " .. self.Name .. ":InvokeServer(" .. argStr .. ")", Color3.fromRGB(100, 200, 255))
+        end
+        return oldInvoke(self, ...)
+    end)
+end
+
+-- Запускаем перехват
+task.spawn(hookRemotesForConsole)
+
+AddLog("Console started!", Color3.fromRGB(100, 255, 100))
 
 --[[
     НОВАЯ ВКЛАДКА "SCANNING"
