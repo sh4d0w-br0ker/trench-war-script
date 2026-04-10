@@ -241,8 +241,29 @@ local function GenerateArgsFromName(remoteName)
     end
 end
 
+-- Список сервисов которые могут быть в игре
+local function GetAvailableServices()
+    local services = {}
+    local possibleServices = {
+        game.Workspace,
+        game.Lighting,
+        game.ReplicatedStorage,
+        game.ServerStorage,
+        game.Players
+    }
+    for _, service in pairs(possibleServices) do
+        local success, result = pcall(function()
+            return service ~= nil
+        end)
+        if success and result then
+            table.insert(services, service)
+        end
+    end
+    return services
+end
+
 local function FindRemoteInGame(remoteName, remoteType)
-    local services = {game.Workspace, game.Lighting, game.ReplicatedStorage}
+    local services = GetAvailableServices()
     local function search(parent)
         if not parent then return nil end
         local success, result = pcall(function()
@@ -456,8 +477,8 @@ end
 -- INFO TAB
 local tInfo = CreateTab("Info")
 local itxt = Instance.new("TextLabel", tInfo)
-itxt.Size = UDim2.new(1,0,0,120)
-itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nScans: Workspace, Lighting,\nReplicatedStorage"
+itxt.Size = UDim2.new(1,0,0,140)
+itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nScans: Workspace, Lighting,\nReplicatedStorage, ServerStorage,\nPlayers (if exist)"
 itxt.TextColor3 = Color3.new(1,1,1)
 itxt.BackgroundTransparency = 1
 itxt.Font = Enum.Font.Gotham
@@ -510,7 +531,7 @@ local function FindAllEvents(parent, path, results)
 end
 
 local allEvents = {}
-local services = {game.ReplicatedStorage, game.Workspace, game.Lighting}
+local services = GetAvailableServices()
 for _, service in pairs(services) do
     if service then
         FindAllEvents(service, service.Name, allEvents)
