@@ -451,6 +451,19 @@ CreateButton(tSpy, "LalolHub", Color3.fromRGB(200, 150, 50), function()
     ShowNotification("Loading LalolHub...", false)
     loadstring(game:HttpGet('https://raw.githubusercontent.com/Its-LALOL/LALOL-Hub/main/Backdoor-Scanner/script', true))()
 end)
+CreateButton(tSpy, "Hydroxide", Color3.fromRGB(100, 150, 250), function()
+    ShowNotification("Loading Hydroxide...", false)
+    
+    local owner = "Upbolt"
+    local branch = "revision"
+    
+    local function webImport(file)
+        return loadstring(game:HttpGetAsync(("https://raw.githubusercontent.com/%s/Hydroxide/%s/%s.lua"):format(owner, branch, file)), file .. '.lua')()
+    end
+    
+    webImport("init")
+    webImport("ui/main")
+end)
 
 
 local tEvents = CreateTab("Events")
