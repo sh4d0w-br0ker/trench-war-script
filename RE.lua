@@ -382,14 +382,24 @@ local function CreateFloatWindow(title, remoteType, fullPath)
         CopyToClipboard(copyText)
     end)
     
+    -- FIRE BUTTON - БЕЗ ПРОВЕРКИ НА JSON, ВЫПОЛНЯЕТ ЛЮБУЮ ХУЙНЮ
     FireBtn.MouseButton1Click:Connect(function()
-        local success, args = pcall(function()
-            return game:GetService("HttpService"):JSONDecode(TextBox.Text)
-        end)
-        if not success then
-            ShowNotification("Invalid JSON!", true)
-            return
+        local args = {}
+        local text = TextBox.Text
+        
+        if text == "" then
+            args = {}
+        else
+            local success, decoded = pcall(function()
+                return game:GetService("HttpService"):JSONDecode(text)
+            end)
+            if success then
+                args = decoded
+            else
+                args = {text}
+            end
         end
+        
         local target = FindRemoteInGame(title, remoteType)
         if target then
             local ok, err = pcall(function()
@@ -450,8 +460,7 @@ eventsLabel.Parent = eventsContainer
 
 local function ScanForEvents(parent, path, results)
     if not parent then return end
-    for _, child in pairs(parent:GetChildren())
-    do
+    for _, child in pairs(parent:GetChildren()) do
         local newPath = path .. "/" .. child.Name
         if child:IsA("RemoteEvent") then
             table.insert(results, {name = child.Name, path = newPath})
