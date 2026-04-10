@@ -5,12 +5,12 @@ local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 
 -- Видалення старої копії
-if Player.PlayerGui:FindFirstChild("VoidHubGui") then
-    Player.PlayerGui.VoidHubGui:Destroy()
+if Player.PlayerGui:FindFirstChild("RemoteExplorer") then
+    Player.PlayerGui.RemoteExplorer:Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VoidHubGui"
+ScreenGui.Name = "RemoteExplorer"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 100
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
@@ -45,6 +45,28 @@ local function ShowNotification(message, isError)
     end)
 end
 
+-- Копирование в буфер
+local function CopyToClipboard(text)
+    local success, err = pcall(function()
+        setclipboard(text)
+    end)
+    if success then
+        ShowNotification("Copied to clipboard!", false)
+    else
+        local TextCopy = Instance.new("TextBox")
+        TextCopy.Size = UDim2.new(0, 0, 0, 0)
+        TextCopy.Position = UDim2.new(0, -1000, 0, -1000)
+        TextCopy.Text = text
+        TextCopy.Parent = ScreenGui
+        TextCopy:CaptureFocus()
+        TextCopy:SelectAll()
+        task.wait(0.1)
+        TextCopy:ReleaseFocus()
+        TextCopy:Destroy()
+        ShowNotification("Copy manually: " .. text, false)
+    end
+end
+
 -- ГОЛОВНЕ ВІКНО
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 350, 0, 450)
@@ -59,7 +81,7 @@ MainFrame.ClipsDescendants = true
 local UICorner = Instance.new("UICorner", MainFrame)
 UICorner.CornerRadius = UDim.new(0, 8)
 
--- ЗВЕЗДЫ ДЛЯ VOID ТЕМЫ
+-- ЗВЕЗДЫ
 local StarsContainer = Instance.new("Frame")
 StarsContainer.Size = UDim2.new(1, 0, 1, 0)
 StarsContainer.BackgroundTransparency = 1
@@ -89,7 +111,7 @@ local HeaderCorner = Instance.new("UICorner", Header)
 HeaderCorner.CornerRadius = UDim.new(0, 8)
 
 local Title = Instance.new("TextLabel")
-Title.Text = "  VOID HUB"
+Title.Text = "  REMOTE EXPLORER"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
 Title.Size = UDim2.new(0.5, 0, 1, 0)
@@ -194,8 +216,68 @@ end
 Instance.new("UIListLayout", Side).Padding = UDim.new(0, 5)
 Instance.new("UIPadding", Side).PaddingLeft = UDim.new(0, 5)
 
+-- Функция генерации аргументов по имени
+local function GenerateArgsFromName(remoteName)
+    local name = remoteName:lower()
+    
+    if name:find("item") or name:find("tool") or name:find("give") then
+        return {"DefaultTool"}
+    elseif name:find("door") then
+        return {"Front"}
+    elseif name:find("energy") then
+        return {100}
+    elseif name:find("teleport") or name:find("tp") then
+        return {"CFrame.new(0, 10, 0)"}
+    elseif name:find("kill") or name:find("damage") or name:find("drown") then
+        return {"game.Players.LocalPlayer", 100}
+    elseif name:find("message") or name:find("chat") or name:find("say") then
+        return {"Hello World"}
+    elseif name:find("key") then
+        return {"Key"}
+    elseif name:find("ladder") then
+        return {1}
+    elseif name:find("cat") then
+        return {}
+    elseif name:find("bed") then
+        return {}
+    elseif name:find("safe") then
+        return {"0000"}
+    elseif name:find("mission") or name:find("basement") then
+        return {}
+    elseif name:find("unlock") then
+        return {}
+    else
+        return {true}
+    end
+end
+
+-- Функция для поиска ремувента ВЕЗДЕ
+local function FindRemoteInGame(remoteName, remoteType)
+    local services = {game.Workspace, game.Lighting, game.ReplicatedStorage, game.ServerStorage, game.Players}
+    
+    local function search(parent)
+        for _, child in pairs(parent:GetChildren()) do
+            if remoteType == "Event" and child:IsA("RemoteEvent") and child.Name == remoteName then
+                return child
+            elseif remoteType == "Function" and child:IsA("RemoteFunction") and child.Name == remoteName then
+                return child
+            elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+                local found = search(child)
+                if found then return found end
+            end
+        end
+        return nil
+    end
+    
+    for _, service in pairs(services) do
+        local found = search(service)
+        if found then return found, service.Name end
+    end
+    return nil, nil
+end
+
 -- Функция для создания плавающего окна
-local function CreateFloatWindow(title, remoteType)
+local function CreateFloatWindow(title, remoteType, fullPath)
     local FloatFrame = Instance.new("Frame")
     FloatFrame.Size = UDim2.new(0, 350, 0, 250)
     FloatFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
@@ -271,7 +353,7 @@ local function CreateFloatWindow(title, remoteType)
     local GenerateBtn = Instance.new("TextButton")
     GenerateBtn.Size = UDim2.new(1, 0, 0, 30)
     GenerateBtn.Position = UDim2.new(0, 0, 0, 90)
-    GenerateBtn.Text = "Generate Event"
+    GenerateBtn.Text = "Generate Args"
     GenerateBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
     GenerateBtn.Font = Enum.Font.GothamSemibold
     GenerateBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -299,7 +381,7 @@ local function CreateFloatWindow(title, remoteType)
     local CopyBtn = Instance.new("TextButton")
     CopyBtn.Size = UDim2.new(0.48, 0, 0, 35)
     CopyBtn.Position = UDim2.new(0.52, 0, 0, 130)
-    CopyBtn.Text = "Copy " .. (remoteType == "Event" and "Event" or "Function")
+    CopyBtn.Text = "Copy Path"
     CopyBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 150)
     CopyBtn.Font = Enum.Font.GothamSemibold
     CopyBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -311,7 +393,7 @@ local function CreateFloatWindow(title, remoteType)
     local PathLabel = Instance.new("TextLabel")
     PathLabel.Size = UDim2.new(1, 0, 0, 20)
     PathLabel.Position = UDim2.new(0, 0, 0, 175)
-    PathLabel.Text = "Path: " .. title
+    PathLabel.Text = "Path: " .. fullPath
     PathLabel.Font = Enum.Font.Gotham
     PathLabel.TextSize = 10
     PathLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
@@ -338,44 +420,34 @@ local function CreateFloatWindow(title, remoteType)
     
     -- Генерация аргументов
     GenerateBtn.MouseButton1Click:Connect(function()
-        local remotePath = title
-        local args = {}
+        local args = GenerateArgsFromName(title)
         
-        if remotePath:find("Tool") or remotePath:find("Give") then
-            args = {"DefaultTool"}
-        elseif remotePath:find("Message") or remotePath:find("Chat") then
-            args = {"Hello World"}
-        elseif remotePath:find("Door") then
-            args = {"Front"}
-        elseif remotePath:find("Energy") then
-            args = {100}
-        elseif remotePath:find("Teleport") or remotePath:find("TP") then
-            args = {CFrame.new(0, 0, 0)}
-        elseif remotePath:find("Kill") or remotePath:find("Damage") then
-            args = {Player, 100}
-        else
-            args = {true}
+        local jsonArgs = {}
+        for _, v in ipairs(args) do
+            if type(v) == "string" then
+                jsonArgs[#jsonArgs + 1] = '"' .. v .. '"'
+            elseif type(v) == "number" then
+                jsonArgs[#jsonArgs + 1] = tostring(v)
+            elseif type(v) == "boolean" then
+                jsonArgs[#jsonArgs + 1] = tostring(v)
+            else
+                jsonArgs[#jsonArgs + 1] = '"' .. tostring(v) .. '"'
+            end
         end
         
-        TextBox.Text = game:GetService("HttpService"):JSONEncode(args)
-        ShowNotification("Generated!", false)
+        TextBox.Text = "[" .. table.concat(jsonArgs, ", ") .. "]"
+        ShowNotification("Args generated!", false)
     end)
     
-    -- Copy Event/Function
+    -- Copy Path
     CopyBtn.MouseButton1Click:Connect(function()
-        local remoteName = title:match("[^/]+$")
-        local pathPart = title:gsub("ReplicatedStorage%.", ""):gsub("/", ".:WaitForChild%(\"")
-        local fullPath = 'game:GetService("ReplicatedStorage"):WaitForChild("' .. pathPart:gsub("%.", '"):WaitForChild("') .. '")'
-        
         local copyText
         if remoteType == "Event" then
             copyText = fullPath .. ':FireServer()'
         else
             copyText = fullPath .. ':InvokeServer()'
         end
-        
-        setclipboard(copyText)
-        ShowNotification("Copied to clipboard!", false)
+        CopyToClipboard(copyText)
     end)
     
     -- Fire/Call
@@ -385,29 +457,27 @@ local function CreateFloatWindow(title, remoteType)
         end)
         
         if not success then
-            ShowNotification("Invalid JSON format!", true)
+            ShowNotification("Invalid JSON! Use: [\"value\", 123]", true)
             return
         end
         
-        local remote = RS:FindFirstChild("RemoteEvents")
-        if remoteType == "Function" then
-            remote = RS:FindFirstChild("RemoteFunctions")
-        end
+        local target, serviceName = FindRemoteInGame(title, remoteType)
         
-        if remote then
-            local target = remote:FindFirstChild(title:match("[^/]+$"))
-            if target then
+        if target then
+            local success2, err = pcall(function()
                 if remoteType == "Event" then
                     target:FireServer(unpack(args))
                 else
                     target:InvokeServer(unpack(args))
                 end
+            end)
+            if success2 then
                 ShowNotification("Successfully executed!", false)
             else
-                ShowNotification("Remote not found!", true)
+                ShowNotification("Error: " .. tostring(err), true)
             end
         else
-            ShowNotification("Remote folder not found!", true)
+            ShowNotification("Remote not found in game!", true)
         end
     end)
     
@@ -417,8 +487,8 @@ end
 -- Вкладка INFO
 local tInfo = CreateTab("Info")
 local itxt = Instance.new("TextLabel", tInfo)
-itxt.Size = UDim2.new(1,0,0,80)
-itxt.Text = "VOID HUB v2\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip"
+itxt.Size = UDim2.new(1,0,0,100)
+itxt.Text = "REMOTE EXPLORER v1\n\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedfortip\n\nTool for finding vulnerabilities\nScans: Workspace, Lighting,\nReplicatedStorage, ServerStorage,\nPlayers"
 itxt.TextColor3 = Color3.new(1,1,1)
 itxt.BackgroundTransparency = 1
 itxt.Font = Enum.Font.Gotham
@@ -436,47 +506,9 @@ CreateButton(tSpy, "Get Infinite Yield", Color3.fromRGB(200, 150, 50), function(
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
 
--- Вкладка EVENTS
+-- Вкладка EVENTS - ИЩЕТ ВО ВСЕЙ ИГРЕ
 local tEvents = CreateTab("Events")
 
-local function ScanRemotes(parent, path, buttonParent, remoteType)
-    for _, child in pairs(parent:GetChildren()) do
-        local newPath = path .. "/" .. child.Name
-        if child:IsA("RemoteEvent") and remoteType == "Event" then
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, -5, 0, 30)
-            btn.Text = child.Name
-            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-            btn.Font = Enum.Font.Gotham
-            btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.TextSize = 11
-            btn.Parent = buttonParent
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            
-            btn.MouseButton1Click:Connect(function()
-                CreateFloatWindow(newPath, "Event")
-            end)
-        elseif child:IsA("RemoteFunction") and remoteType == "Function" then
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, -5, 0, 30)
-            btn.Text = child.Name
-            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-            btn.Font = Enum.Font.Gotham
-            btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.TextSize = 11
-            btn.Parent = buttonParent
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-            
-            btn.MouseButton1Click:Connect(function()
-                CreateFloatWindow(newPath, "Function")
-            end)
-        elseif child:IsA("Folder") or child:IsA("Model") then
-            ScanRemotes(child, newPath, buttonParent, remoteType)
-        end
-    end
-end
-
--- RemoteEvents
 local eventsContainer = Instance.new("ScrollingFrame")
 eventsContainer.Size = UDim2.new(1, 0, 1, 0)
 eventsContainer.BackgroundTransparency = 1
@@ -490,18 +522,57 @@ eventsLayout.Padding = UDim.new(0, 3)
 
 local eventsLabel = Instance.new("TextLabel")
 eventsLabel.Size = UDim2.new(1, 0, 0, 25)
-eventsLabel.Text = "=== REMOTE EVENTS ==="
+eventsLabel.Text = "=== REMOTE EVENTS (ALL GAME) ==="
 eventsLabel.TextColor3 = Color3.fromRGB(200, 200, 100)
 eventsLabel.BackgroundTransparency = 1
 eventsLabel.Font = Enum.Font.GothamBold
 eventsLabel.Parent = eventsContainer
 
-local remoteEventsFolder = RS:FindFirstChild("RemoteEvents")
-if remoteEventsFolder then
-    ScanRemotes(remoteEventsFolder, "ReplicatedStorage.RemoteEvents", eventsContainer, "Event")
+-- Поиск ВЕЗДЕ
+local function FindAllEventsInGame(parent, path, results)
+    for _, child in pairs(parent:GetChildren()) do
+        local newPath = path .. "/" .. child.Name
+        if child:IsA("RemoteEvent") then
+            table.insert(results, {name = child.Name, path = newPath})
+        elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+            FindAllEventsInGame(child, newPath, results)
+        end
+    end
 end
 
--- Вкладка FUNCTIONS
+local allEvents = {}
+local services = {game.Workspace, game.Lighting, game.ReplicatedStorage, game.ServerStorage, game.Players}
+
+for _, service in pairs(services) do
+    FindAllEventsInGame(service, service.Name, allEvents)
+end
+
+if #allEvents > 0 then
+    for _, ev in pairs(allEvents) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -5, 0, 30)
+        btn.Text = ev.name .. " (" .. ev.path:match("^[^/]+") .. ")"
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        btn.Font = Enum.Font.Gotham
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.TextSize = 10
+        btn.Parent = eventsContainer
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+        
+        btn.MouseButton1Click:Connect(function()
+            CreateFloatWindow(ev.name, "Event", ev.path)
+        end)
+    end
+else
+    local nothing = Instance.new("TextLabel")
+    nothing.Size = UDim2.new(1, 0, 0, 30)
+    nothing.Text = "No RemoteEvents found!"
+    nothing.TextColor3 = Color3.fromRGB(255, 100, 100)
+    nothing.BackgroundTransparency = 1
+    nothing.Parent = eventsContainer
+end
+
+-- Вкладка FUNCTIONS - ИЩЕТ ВО ВСЕЙ ИГРЕ
 local tFunctions = CreateTab("Functions")
 
 local functionsContainer = Instance.new("ScrollingFrame")
@@ -517,15 +588,52 @@ functionsLayout.Padding = UDim.new(0, 3)
 
 local functionsLabel = Instance.new("TextLabel")
 functionsLabel.Size = UDim2.new(1, 0, 0, 25)
-functionsLabel.Text = "=== REMOTE FUNCTIONS ==="
+functionsLabel.Text = "=== REMOTE FUNCTIONS (ALL GAME) ==="
 functionsLabel.TextColor3 = Color3.fromRGB(100, 200, 200)
 functionsLabel.BackgroundTransparency = 1
 functionsLabel.Font = Enum.Font.GothamBold
 functionsLabel.Parent = functionsContainer
 
-local remoteFunctionsFolder = RS:FindFirstChild("RemoteFunctions")
-if remoteFunctionsFolder then
-    ScanRemotes(remoteFunctionsFolder, "ReplicatedStorage.RemoteFunctions", functionsContainer, "Function")
+local function FindAllFunctionsInGame(parent, path, results)
+    for _, child in pairs(parent:GetChildren()) do
+        local newPath = path .. "/" .. child.Name
+        if child:IsA("RemoteFunction") then
+            table.insert(results, {name = child.Name, path = newPath})
+        elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+            FindAllFunctionsInGame(child, newPath, results)
+        end
+    end
+end
+
+local allFunctions = {}
+
+for _, service in pairs(services) do
+    FindAllFunctionsInGame(service, service.Name, allFunctions)
+end
+
+if #allFunctions > 0 then
+    for _, fn in pairs(allFunctions) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -5, 0, 30)
+        btn.Text = fn.name .. " (" .. fn.path:match("^[^/]+") .. ")"
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        btn.Font = Enum.Font.Gotham
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.TextSize = 10
+        btn.Parent = functionsContainer
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+        
+        btn.MouseButton1Click:Connect(function()
+            CreateFloatWindow(fn.name, "Function", fn.path)
+        end)
+    end
+else
+    local nothing = Instance.new("TextLabel")
+    nothing.Size = UDim2.new(1, 0, 0, 30)
+    nothing.Text = "No RemoteFunctions found!"
+    nothing.TextColor3 = Color3.fromRGB(255, 100, 100)
+    nothing.BackgroundTransparency = 1
+    nothing.Parent = functionsContainer
 end
 
 -- Вкладка SETTINGS
