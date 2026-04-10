@@ -15,10 +15,40 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.DisplayOrder = 100
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
+-- Функция для всплывающего уведомления
+local function ShowNotification(message, isError)
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(0, 250, 0, 40)
+    notif.Position = UDim2.new(0.5, -125, 0, 10)
+    notif.BackgroundColor3 = isError and Color3.fromRGB(200, 50, 50) or Color3.fromRGB(50, 150, 50)
+    notif.BackgroundTransparency = 0.1
+    notif.BorderSizePixel = 0
+    notif.Parent = ScreenGui
+    
+    local notifCorner = Instance.new("UICorner", notif)
+    notifCorner.CornerRadius = UDim.new(0, 6)
+    
+    local notifText = Instance.new("TextLabel")
+    notifText.Size = UDim2.new(1, 0, 1, 0)
+    notifText.Text = message
+    notifText.Font = Enum.Font.GothamBold
+    notifText.TextSize = 12
+    notifText.TextColor3 = Color3.new(1, 1, 1)
+    notifText.BackgroundTransparency = 1
+    notifText.Parent = notif
+    
+    task.spawn(function()
+        task.wait(2)
+        notif:TweenSize(UDim2.new(0, 250, 0, 0), "Out", "Quad", 0.3, true)
+        task.wait(0.3)
+        notif:Destroy()
+    end)
+end
+
 -- ГОЛОВНЕ ВІКНО
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 350, 0, 420)
-MainFrame.Position = UDim2.new(0.5, -175, 0.5, -210)
+MainFrame.Size = UDim2.new(0, 350, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -109,7 +139,7 @@ MinimizeBtn.MouseButton1Click:Connect(function()
         MainFrame:TweenSize(UDim2.new(0, 350, 0, 35), "Out", "Quad", 0.2, true)
         MinimizeBtn.Text = "+"
     else
-        MainFrame:TweenSize(UDim2.new(0, 350, 0, 420), "Out", "Quad", 0.2, true)
+        MainFrame:TweenSize(UDim2.new(0, 350, 0, 450), "Out", "Quad", 0.2, true)
         MinimizeBtn.Text = "—"
     end
 end)
@@ -167,8 +197,8 @@ Instance.new("UIPadding", Side).PaddingLeft = UDim.new(0, 5)
 -- Функция для создания плавающего окна
 local function CreateFloatWindow(title, remoteType)
     local FloatFrame = Instance.new("Frame")
-    FloatFrame.Size = UDim2.new(0, 300, 0, 200)
-    FloatFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    FloatFrame.Size = UDim2.new(0, 350, 0, 250)
+    FloatFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
     FloatFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     FloatFrame.BorderSizePixel = 0
     FloatFrame.BackgroundTransparency = 0.05
@@ -192,8 +222,8 @@ local function CreateFloatWindow(title, remoteType)
     local FloatTitle = Instance.new("TextLabel")
     FloatTitle.Text = title
     FloatTitle.Font = Enum.Font.GothamBold
-    FloatTitle.TextSize = 12
-    FloatTitle.Size = UDim2.new(1, -60, 1, 0)
+    FloatTitle.TextSize = 11
+    FloatTitle.Size = UDim2.new(1, -90, 1, 0)
     FloatTitle.Position = UDim2.new(0, 10, 0, 0)
     FloatTitle.TextColor3 = Color3.new(1, 1, 1)
     FloatTitle.BackgroundTransparency = 1
@@ -251,7 +281,7 @@ local function CreateFloatWindow(title, remoteType)
     GenerateCorner.CornerRadius = UDim.new(0, 6)
     
     local FireBtn = Instance.new("TextButton")
-    FireBtn.Size = UDim2.new(1, 0, 0, 35)
+    FireBtn.Size = UDim2.new(0.48, 0, 0, 35)
     FireBtn.Position = UDim2.new(0, 0, 0, 130)
     if remoteType == "Event" then
         FireBtn.Text = "Fire Event"
@@ -265,6 +295,18 @@ local function CreateFloatWindow(title, remoteType)
     
     local FireCorner = Instance.new("UICorner", FireBtn)
     FireCorner.CornerRadius = UDim.new(0, 6)
+    
+    local CopyBtn = Instance.new("TextButton")
+    CopyBtn.Size = UDim2.new(0.48, 0, 0, 35)
+    CopyBtn.Position = UDim2.new(0.52, 0, 0, 130)
+    CopyBtn.Text = "Copy " .. (remoteType == "Event" and "Event" or "Function")
+    CopyBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 150)
+    CopyBtn.Font = Enum.Font.GothamSemibold
+    CopyBtn.TextColor3 = Color3.new(1, 1, 1)
+    CopyBtn.Parent = FloatContent
+    
+    local CopyCorner = Instance.new("UICorner", CopyBtn)
+    CopyCorner.CornerRadius = UDim.new(0, 6)
     
     local PathLabel = Instance.new("TextLabel")
     PathLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -281,11 +323,11 @@ local function CreateFloatWindow(title, remoteType)
         isFloatMinimized = not isFloatMinimized
         if isFloatMinimized then
             FloatContent.Visible = false
-            FloatFrame:TweenSize(UDim2.new(0, 300, 0, 30), "Out", "Quad", 0.2, true)
+            FloatFrame:TweenSize(UDim2.new(0, 350, 0, 30), "Out", "Quad", 0.2, true)
             FloatMinimize.Text = "+"
         else
             FloatContent.Visible = true
-            FloatFrame:TweenSize(UDim2.new(0, 300, 0, 200), "Out", "Quad", 0.2, true)
+            FloatFrame:TweenSize(UDim2.new(0, 350, 0, 250), "Out", "Quad", 0.2, true)
             FloatMinimize.Text = "—"
         end
     end)
@@ -299,7 +341,6 @@ local function CreateFloatWindow(title, remoteType)
         local remotePath = title
         local args = {}
         
-        -- Пытаемся определить тип аргументов по названию
         if remotePath:find("Tool") or remotePath:find("Give") then
             args = {"DefaultTool"}
         elseif remotePath:find("Message") or remotePath:find("Chat") then
@@ -317,6 +358,24 @@ local function CreateFloatWindow(title, remoteType)
         end
         
         TextBox.Text = game:GetService("HttpService"):JSONEncode(args)
+        ShowNotification("Generated!", false)
+    end)
+    
+    -- Copy Event/Function
+    CopyBtn.MouseButton1Click:Connect(function()
+        local remoteName = title:match("[^/]+$")
+        local pathPart = title:gsub("ReplicatedStorage%.", ""):gsub("/", ".:WaitForChild%(\"")
+        local fullPath = 'game:GetService("ReplicatedStorage"):WaitForChild("' .. pathPart:gsub("%.", '"):WaitForChild("') .. '")'
+        
+        local copyText
+        if remoteType == "Event" then
+            copyText = fullPath .. ':FireServer()'
+        else
+            copyText = fullPath .. ':InvokeServer()'
+        end
+        
+        setclipboard(copyText)
+        ShowNotification("Copied to clipboard!", false)
     end)
     
     -- Fire/Call
@@ -326,7 +385,7 @@ local function CreateFloatWindow(title, remoteType)
         end)
         
         if not success then
-            TextBox.Text = "Invalid JSON! Use format: [\"value1\", 123, true]"
+            ShowNotification("Invalid JSON format!", true)
             return
         end
         
@@ -343,19 +402,19 @@ local function CreateFloatWindow(title, remoteType)
                 else
                     target:InvokeServer(unpack(args))
                 end
-                TextBox.Text = "✓ " .. remoteType .. " fired successfully!\n" .. TextBox.Text
+                ShowNotification("Successfully executed!", false)
             else
-                TextBox.Text = "Remote not found!"
+                ShowNotification("Remote not found!", true)
             end
         else
-            TextBox.Text = "Remote folder not found!"
+            ShowNotification("Remote folder not found!", true)
         end
     end)
     
     return FloatFrame
 end
 
--- Вкладка INFO (только информация)
+-- Вкладка INFO
 local tInfo = CreateTab("Info")
 local itxt = Instance.new("TextLabel", tInfo)
 itxt.Size = UDim2.new(1,0,0,80)
@@ -363,6 +422,19 @@ itxt.Text = "VOID HUB v2\nCreated by spynote\nDiscord: @_thefinal_\nRoblox: sedf
 itxt.TextColor3 = Color3.new(1,1,1)
 itxt.BackgroundTransparency = 1
 itxt.Font = Enum.Font.Gotham
+
+-- Вкладка SPY
+local tSpy = CreateTab("Spy")
+
+CreateButton(tSpy, "Get Cobalt", Color3.fromRGB(80, 150, 200), function()
+    ShowNotification("Loading Cobalt...", false)
+    loadstring(game:HttpGet("https://github.com/notpoiu/cobalt/releases/latest/download/Cobalt.luau"))()
+end)
+
+CreateButton(tSpy, "Get Infinite Yield", Color3.fromRGB(200, 150, 50), function()
+    ShowNotification("Loading Infinite Yield...", false)
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end)
 
 -- Вкладка EVENTS
 local tEvents = CreateTab("Events")
@@ -404,7 +476,7 @@ local function ScanRemotes(parent, path, buttonParent, remoteType)
     end
 end
 
--- Сканируем RemoteEvents
+-- RemoteEvents
 local eventsContainer = Instance.new("ScrollingFrame")
 eventsContainer.Size = UDim2.new(1, 0, 1, 0)
 eventsContainer.BackgroundTransparency = 1
