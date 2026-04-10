@@ -220,7 +220,7 @@ local function FindRemoteInGame(remoteName, remoteType)
                 return child
             elseif remoteType == "Function" and child:IsA("RemoteFunction") and child.Name == remoteName then
                 return child
-            elseif child:IsA("Folder") or child:IsA("Model") then
+            else
                 local found = search(child)
                 if found then return found end
             end
@@ -668,16 +668,21 @@ selectRemoteBtn.MouseButton1Click:Connect(function()
     
     -- Собираем все ремувенты из игры (как в вашем Events/Functions)
     local allRemotes = {}
-    local function collectRemotes(parent, path)
-        for _, child in pairs(parent:GetChildren()) do
-            local newPath = path .. "/" .. child.Name
-            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
-                table.insert(allRemotes, {name = child.Name, path = newPath, obj = child})
-            elseif child:IsA("Folder") or child:IsA("Model") then
-                collectRemotes(child, newPath)
-            end
+local function collectRemotes(parent, path)
+    for _, child in pairs(parent:GetChildren()) do
+        local newPath = path .. "/" .. child.Name
+        if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+            table.insert(allRemotes, {name = child.Name, path = newPath, obj = child})
+        else
+            collectRemotes(child, newPath)
         end
     end
+end
+
+local scanServices = {game.ReplicatedStorage, game.Workspace, game.Lighting}
+for _, svc in pairs(scanServices) do
+    if svc then collectRemotes(svc, svc.Name) end
+        end
     
     local scanServices = {game.ReplicatedStorage, game.Workspace, game.Lighting}
     for _, svc in pairs(scanServices) do
