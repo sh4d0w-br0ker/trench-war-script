@@ -468,7 +468,8 @@ local function ScanForEvents(parent, path, results)
         local newPath = path .. "/" .. child.Name
         if child:IsA("RemoteEvent") then
             table.insert(results, {name = child.Name, path = newPath})
-        elseif child:IsA("Folder") or child:IsA("Model") then
+        else
+            -- РЕКУРСИВНО ЗАХОДИМ В ЛЮБЫЕ ДОЧЕРНИЕ ОБЪЕКТЫ (папки, модели и т.д.)
             ScanForEvents(child, newPath, results)
         end
     end
@@ -530,7 +531,8 @@ local function ScanForFunctions(parent, path, results)
         local newPath = path .. "/" .. child.Name
         if child:IsA("RemoteFunction") then
             table.insert(results, {name = child.Name, path = newPath})
-        elseif child:IsA("Folder") or child:IsA("Model") then
+        else
+            -- РЕКУРСИВНО ЗАХОДИМ В ЛЮБЫЕ ДОЧЕРНИЕ ОБЪЕКТЫ (папки, модели и т.д.)
             ScanForFunctions(child, newPath, results)
         end
     end
