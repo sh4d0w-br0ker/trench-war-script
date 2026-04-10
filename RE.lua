@@ -507,7 +507,7 @@ else
     nothing.Parent = eventsContainer
 end
 
--- ВКЛАДКА PLAYERS
+-- ВКЛАДКА PLAYERS (ИСПРАВЛЕННАЯ)
 local tPlayers = CreateTab("Players")
 
 local playersContainer = Instance.new("ScrollingFrame")
@@ -528,6 +528,12 @@ playersLabel.Font = Enum.Font.GothamBold
 playersLabel.Parent = playersContainer
 
 local function ScanForRemotesInPlayers()
+    -- Очищаем старые кнопки
+    for _, v in pairs(playersContainer:GetChildren()) do
+        if v:IsA("TextButton") then v:Destroy() end
+    end
+    playersLabel.Parent = playersContainer
+    
     for _, plr in pairs(Players:GetPlayers()) do
         local function searchInPlayer(parent, path)
             for _, child in pairs(parent:GetChildren()) do
@@ -547,7 +553,8 @@ local function ScanForRemotesInPlayers()
                     btn.MouseButton1Click:Connect(function()
                         CreateFloatWindow(child.Name, remoteType, newPath)
                     end)
-                elseif child:IsA("Folder") or child:IsA("Model") or child:IsA("Tool") then
+                else
+                    -- ЗАХОДИМ В ЛЮБЫЕ ДОЧЕРНИЕ ОБЪЕКТЫ (не только Folder/Model/Tool)
                     searchInPlayer(child, newPath)
                 end
             end
@@ -560,18 +567,10 @@ ScanForRemotesInPlayers()
 
 -- Обновление при добавлении/удалении игроков
 Players.PlayerAdded:Connect(function()
-    for _, v in pairs(playersContainer:GetChildren()) do
-        if v:IsA("TextButton") then v:Destroy() end
-    end
-    playersLabel.Parent = playersContainer
     ScanForRemotesInPlayers()
 end)
 
 Players.PlayerRemoving:Connect(function()
-    for _, v in pairs(playersContainer:GetChildren()) do
-        if v:IsA("TextButton") then v:Destroy() end
-    end
-    playersLabel.Parent = playersContainer
     ScanForRemotesInPlayers()
 end)
 
