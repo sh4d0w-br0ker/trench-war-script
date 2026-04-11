@@ -1111,16 +1111,139 @@ local function UpdateTheme(color)
     for _, star in pairs(stars) do star.Visible = false end
 end
 
-CreateButton(tSettings, "White Theme", Color3.fromRGB(200,200,200), function()
-    UpdateTheme(Color3.fromRGB(200,200,200))
-    MainFrame.BackgroundColor3 = Color3.fromRGB(200,200,200)
-    Header.BackgroundColor3 = Color3.fromRGB(180,180,180)
-    Side.BackgroundColor3 = Color3.fromRGB(190,190,190)
+-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ИМЕНИ ИНСТРУМЕНТА
+local nameFrame = Instance.new("Frame")
+nameFrame.Size = UDim2.new(1, -10, 0, 80)
+nameFrame.Position = UDim2.new(0, 5, 0, 5)
+nameFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+nameFrame.BorderSizePixel = 0
+nameFrame.Parent = tSettings
+Instance.new("UICorner", nameFrame).CornerRadius = UDim.new(0, 6)
+
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(1, -10, 0, 25)
+nameLabel.Position = UDim2.new(0, 5, 0, 5)
+nameLabel.Text = "Tool Name:"
+nameLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Font = Enum.Font.GothamBold
+nameLabel.TextSize = 12
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = nameFrame
+
+local nameBox = Instance.new("TextBox")
+nameBox.Size = UDim2.new(1, -10, 0, 30)
+nameBox.Position = UDim2.new(0, 5, 0, 30)
+nameBox.PlaceholderText = "Enter new tool name..."
+nameBox.Text = "REMOTE EXPLORER"
+nameBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+nameBox.TextColor3 = Color3.new(1, 1, 1)
+nameBox.Font = Enum.Font.Gotham
+nameBox.TextSize = 12
+nameBox.Parent = nameFrame
+Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 6)
+
+local applyNameBtn = Instance.new("TextButton")
+applyNameBtn.Size = UDim2.new(0, 100, 0, 30)
+applyNameBtn.Position = UDim2.new(1, -105, 0, 30)
+applyNameBtn.Text = "Apply Name"
+applyNameBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
+applyNameBtn.Font = Enum.Font.GothamSemibold
+applyNameBtn.TextColor3 = Color3.new(1, 1, 1)
+applyNameBtn.TextSize = 12
+applyNameBtn.Parent = nameFrame
+Instance.new("UICorner", applyNameBtn).CornerRadius = UDim.new(0, 6)
+
+applyNameBtn.MouseButton1Click:Connect(function()
+    local newName = nameBox.Text
+    if newName ~= "" then
+        Title.Text = "  " .. newName
+        ShowNotification("Name changed to: " .. newName, false)
+    else
+        ShowNotification("Name cannot be empty!", true)
+    end
 end)
 
-CreateButton(tSettings, "Red Theme", Color3.fromRGB(150,50,50), function()
-    UpdateTheme(Color3.fromRGB(150,50,50))
+-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ФОНОВОГО ИЗОБРАЖЕНИЯ
+local bgFrame = Instance.new("Frame")
+bgFrame.Size = UDim2.new(1, -10, 0, 80)
+bgFrame.Position = UDim2.new(0, 5, 0, 95)
+bgFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+bgFrame.BorderSizePixel = 0
+bgFrame.Parent = tSettings
+Instance.new("UICorner", bgFrame).CornerRadius = UDim.new(0, 6)
+
+local bgLabel = Instance.new("TextLabel")
+bgLabel.Size = UDim2.new(1, -10, 0, 25)
+bgLabel.Position = UDim2.new(0, 5, 0, 5)
+bgLabel.Text = "Background Image (Asset ID):"
+bgLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+bgLabel.BackgroundTransparency = 1
+bgLabel.Font = Enum.Font.GothamBold
+bgLabel.TextSize = 12
+bgLabel.TextXAlignment = Enum.TextXAlignment.Left
+bgLabel.Parent = bgFrame
+
+local bgBox = Instance.new("TextBox")
+bgBox.Size = UDim2.new(1, -10, 0, 30)
+bgBox.Position = UDim2.new(0, 5, 0, 30)
+bgBox.PlaceholderText = "Enter Asset ID (e.g., 1234567890)"
+bgBox.Text = ""
+bgBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+bgBox.TextColor3 = Color3.new(1, 1, 1)
+bgBox.Font = Enum.Font.Gotham
+bgBox.TextSize = 12
+bgBox.Parent = bgFrame
+Instance.new("UICorner", bgBox).CornerRadius = UDim.new(0, 6)
+
+local applyBgBtn = Instance.new("TextButton")
+applyBgBtn.Size = UDim2.new(0, 120, 0, 30)
+applyBgBtn.Position = UDim2.new(1, -125, 0, 30)
+applyBgBtn.Text = "Apply Background"
+applyBgBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
+applyBgBtn.Font = Enum.Font.GothamSemibold
+applyBgBtn.TextColor3 = Color3.new(1, 1, 1)
+applyBgBtn.TextSize = 12
+applyBgBtn.Parent = bgFrame
+Instance.new("UICorner", applyBgBtn).CornerRadius = UDim.new(0, 6)
+
+local removeBgBtn = Instance.new("TextButton")
+removeBgBtn.Size = UDim2.new(0, 80, 0, 30)
+removeBgBtn.Position = UDim2.new(1, -210, 0, 30)
+removeBgBtn.Text = "Remove BG"
+removeBgBtn.BackgroundColor3 = Color3.fromRGB(180, 80, 80)
+removeBgBtn.Font = Enum.Font.GothamSemibold
+removeBgBtn.TextColor3 = Color3.new(1, 1, 1)
+removeBgBtn.TextSize = 12
+removeBgBtn.Parent = bgFrame
+Instance.new("UICorner", removeBgBtn).CornerRadius = UDim.new(0, 6)
+
+-- Функция установки фона
+local function SetBackground(assetId)
+    if assetId and assetId ~= "" then
+        local imageUrl = "rbxassetid://" .. tostring(assetId)
+        MainFrame.BackgroundImage = imageUrl
+        MainFrame.BackgroundImageTransparency = 0.7  -- Немного прозрачный
+        ShowNotification("Background applied!", false)
+    else
+        ShowNotification("Invalid Asset ID!", true)
+    end
+end
+
+applyBgBtn.MouseButton1Click:Connect(function()
+    local assetId = bgBox.Text
+    if assetId ~= "" then
+        SetBackground(assetId)
+    else
+        ShowNotification("Enter an Asset ID first!", true)
+    end
 end)
+
+removeBgBtn.MouseButton1Click:Connect(function()
+    MainFrame.BackgroundImage = ""
+    ShowNotification("Background removed!", false)
+end)
+
 
 CreateButton(tSettings, "Black Theme", Color3.fromRGB(15,15,15), function()
     UpdateTheme(Color3.fromRGB(15,15,15))
