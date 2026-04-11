@@ -1111,59 +1111,6 @@ local function UpdateTheme(color)
     for _, star in pairs(stars) do star.Visible = false end
 end
 
--- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ИМЕНИ ИНСТРУМЕНТА
-local nameFrame = Instance.new("Frame")
-nameFrame.Size = UDim2.new(1, -10, 0, 85)
-nameFrame.Position = UDim2.new(0, 5, 0, 5)
-nameFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-nameFrame.BorderSizePixel = 0
-nameFrame.Parent = tSettings
-Instance.new("UICorner", nameFrame).CornerRadius = UDim.new(0, 6)
-
-local nameLabel = Instance.new("TextLabel")
-nameLabel.Size = UDim2.new(1, -10, 0, 25)
-nameLabel.Position = UDim2.new(0, 5, 0, 5)
-nameLabel.Text = "Tool Name:"
-nameLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-nameLabel.BackgroundTransparency = 1
-nameLabel.Font = Enum.Font.GothamBold
-nameLabel.TextSize = 12
-nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-nameLabel.Parent = nameFrame
-
-local nameBox = Instance.new("TextBox")
-nameBox.Size = UDim2.new(1, -10, 0, 30)
-nameBox.Position = UDim2.new(0, 5, 0, 30)
-nameBox.PlaceholderText = "Enter new tool name..."
-nameBox.Text = "REMOTE EXPLORER"
-nameBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-nameBox.TextColor3 = Color3.new(1, 1, 1)
-nameBox.Font = Enum.Font.Gotham
-nameBox.TextSize = 12
-nameBox.Parent = nameFrame
-Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 6)
-
-local applyNameBtn = Instance.new("TextButton")
-applyNameBtn.Size = UDim2.new(0, 100, 0, 30)
-applyNameBtn.Position = UDim2.new(1, -105, 0, 65)
-applyNameBtn.Text = "Apply Name"
-applyNameBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
-applyNameBtn.Font = Enum.Font.GothamSemibold
-applyNameBtn.TextColor3 = Color3.new(1, 1, 1)
-applyNameBtn.TextSize = 12
-applyNameBtn.Parent = nameFrame
-Instance.new("UICorner", applyNameBtn).CornerRadius = UDim.new(0, 6)
-
-applyNameBtn.MouseButton1Click:Connect(function()
-    local newName = nameBox.Text
-    if newName ~= "" then
-        Title.Text = "  " .. newName
-        ShowNotification("Name changed to: " .. newName, false)
-    else
-        ShowNotification("Name cannot be empty!", true)
-    end
-end)
-
 CreateButton(tSettings, "Black Theme", Color3.fromRGB(15,15,15), function()
     UpdateTheme(Color3.fromRGB(15,15,15))
 end)
