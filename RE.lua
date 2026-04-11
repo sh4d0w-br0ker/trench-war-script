@@ -1260,7 +1260,6 @@ removeBgBtn.MouseButton1Click:Connect(function()
     ShowNotification("Background removed!", false)
 end)
 
-
 CreateButton(tSettings, "Black Theme", Color3.fromRGB(15,15,15), function()
     UpdateTheme(Color3.fromRGB(15,15,15))
 end)
