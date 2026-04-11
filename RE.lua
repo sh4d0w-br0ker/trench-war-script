@@ -658,10 +658,10 @@ else
     nothing.Parent = functionsContainer
 end
 
--- ВКЛАДКА CONSOLE
+-- ВКЛАДКА CONSOLE (ИСПРАВЛЕННАЯ)
 local tConsole = CreateTab("Console")
 
--- Окно логов (справа)
+-- Окно логов
 local consoleFrame = Instance.new("Frame")
 consoleFrame.Size = UDim2.new(1, -10, 1, -10)
 consoleFrame.Position = UDim2.new(0, 5, 0, 5)
@@ -682,7 +682,6 @@ consoleScroll.Parent = consoleFrame
 local consoleLayout = Instance.new("UIListLayout", consoleScroll)
 consoleLayout.Padding = UDim.new(0, 2)
 
--- Функция добавления лога
 local function AddLog(message, color)
     local logLine = Instance.new("TextLabel")
     logLine.Size = UDim2.new(1, -10, 0, 20)
@@ -695,7 +694,6 @@ local function AddLog(message, color)
     logLine.Parent = consoleScroll
     Instance.new("UICorner", logLine).CornerRadius = UDim.new(0, 4)
     
-    -- Автоскролл вниз
     task.wait(0.05)
     consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.CanvasSize.Y.Offset)
 end
@@ -718,68 +716,37 @@ clearConsoleBtn.MouseButton1Click:Connect(function()
     AddLog("Console cleared", Color3.fromRGB(255, 200, 100))
 end)
 
--- Перехват print
-local oldPrint = print
-print = function(...)
+-- ПЕРЕХВАТ ЧЕРЕЗ ГЛОБАЛЬНЫЕ ТАБЛИЦЫ (РАБОТАЕТ ВЕЗДЕ)
+local env = getgenv and getgenv() or _G or getfenv()
+
+local oldPrint = env.print
+env.print = function(...)
     local args = {...}
     local msg = ""
     for _, v in pairs(args) do
         msg = msg .. tostring(v) .. " "
     end
     AddLog(msg, Color3.fromRGB(200, 200, 200))
-    oldPrint(...)
+    if oldPrint then oldPrint(...) end
 end
 
--- Перехват warn
-local oldWarn = warn
-warn = function(...)
+local oldWarn = env.warn or warn
+env.warn = function(...)
     local args = {...}
     local msg = ""
     for _, v in pairs(args) do
         msg = msg .. tostring(v) .. " "
     end
     AddLog("[WARN] " .. msg, Color3.fromRGB(255, 200, 100))
-    oldWarn(...)
+    if oldWarn then oldWarn(...) end
 end
 
 -- Перехват ошибок
-local oldErrorHandler = error
-error = function(msg, level)
+local oldError = env.error or error
+env.error = function(msg, level)
     AddLog("[ERROR] " .. tostring(msg), Color3.fromRGB(255, 100, 100))
-    return oldErrorHandler(msg, level)
+    return oldError(msg, level)
 end
-
--- Перехват RemoteEvent/RemoteFunction вызовов
-local function hookRemotesForConsole()
-    local oldFire = hookfunction(Instance.new("RemoteEvent").FireServer, function(self, ...)
-        if not checkcaller() then
-            local args = {...}
-            local argStr = ""
-            for i, v in pairs(args) do
-                argStr = argStr .. tostring(v)
-                if i < #args then argStr = argStr .. ", " end
-            end
-            AddLog("[REMOTE] " .. self.Name .. ":FireServer(" .. argStr .. ")", Color3.fromRGB(100, 200, 255))
-        end
-        return oldFire(self, ...)
-    end)
-    
-    local oldInvoke = hookfunction(Instance.new("RemoteFunction").InvokeServer, function(self, ...)
-        if not checkcaller() then
-            local args = {...}
-            local argStr = ""
-            for i, v in pairs(args) do
-                argStr = argStr .. tostring(v)
-                if i < #args then argStr = argStr .. ", " end
-            end
-            AddLog("[REMOTE] " .. self.Name .. ":InvokeServer(" .. argStr .. ")", Color3.fromRGB(100, 200, 255))
-        end
-        return oldInvoke(self, ...)
-    end)
-end
-
--- Запускаем перехват
-task.spawn(hookRemotesForConsole)
 
 AddLog("Console started!", Color3.fromRGB(100, 255, 100))
 
