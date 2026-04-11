@@ -1113,7 +1113,7 @@ end
 
 -- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ИМЕНИ ИНСТРУМЕНТА
 local nameFrame = Instance.new("Frame")
-nameFrame.Size = UDim2.new(1, -10, 0, 80)
+nameFrame.Size = UDim2.new(1, -10, 0, 85)
 nameFrame.Position = UDim2.new(0, 5, 0, 5)
 nameFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 nameFrame.BorderSizePixel = 0
@@ -1145,7 +1145,7 @@ Instance.new("UICorner", nameBox).CornerRadius = UDim.new(0, 6)
 
 local applyNameBtn = Instance.new("TextButton")
 applyNameBtn.Size = UDim2.new(0, 100, 0, 30)
-applyNameBtn.Position = UDim2.new(1, -105, 0, 30)
+applyNameBtn.Position = UDim2.new(1, -105, 0, 65)
 applyNameBtn.Text = "Apply Name"
 applyNameBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
 applyNameBtn.Font = Enum.Font.GothamSemibold
@@ -1164,10 +1164,11 @@ applyNameBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ФОНОВОГО ИЗОБРАЖЕНИЯ
+
+-- ПОЛЕ ДЛЯ ИЗМЕНЕНИЯ ФОНОВОГО ИЗОБРАЖЕНИЯ (ИСПРАВЛЕНО)
 local bgFrame = Instance.new("Frame")
-bgFrame.Size = UDim2.new(1, -10, 0, 80)
-bgFrame.Position = UDim2.new(0, 5, 0, 95)
+bgFrame.Size = UDim2.new(1, -10, 0, 85)
+bgFrame.Position = UDim2.new(0, 5, 0, 100)
 bgFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 bgFrame.BorderSizePixel = 0
 bgFrame.Parent = tSettings
@@ -1198,7 +1199,7 @@ Instance.new("UICorner", bgBox).CornerRadius = UDim.new(0, 6)
 
 local applyBgBtn = Instance.new("TextButton")
 applyBgBtn.Size = UDim2.new(0, 120, 0, 30)
-applyBgBtn.Position = UDim2.new(1, -125, 0, 30)
+applyBgBtn.Position = UDim2.new(1, -210, 0, 65)
 applyBgBtn.Text = "Apply Background"
 applyBgBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 200)
 applyBgBtn.Font = Enum.Font.GothamSemibold
@@ -1208,8 +1209,8 @@ applyBgBtn.Parent = bgFrame
 Instance.new("UICorner", applyBgBtn).CornerRadius = UDim.new(0, 6)
 
 local removeBgBtn = Instance.new("TextButton")
-removeBgBtn.Size = UDim2.new(0, 80, 0, 30)
-removeBgBtn.Position = UDim2.new(1, -210, 0, 30)
+removeBgBtn.Size = UDim2.new(0, 100, 0, 30)
+removeBgBtn.Position = UDim2.new(1, -105, 0, 65)
 removeBgBtn.Text = "Remove BG"
 removeBgBtn.BackgroundColor3 = Color3.fromRGB(180, 80, 80)
 removeBgBtn.Font = Enum.Font.GothamSemibold
@@ -1218,15 +1219,30 @@ removeBgBtn.TextSize = 12
 removeBgBtn.Parent = bgFrame
 Instance.new("UICorner", removeBgBtn).CornerRadius = UDim.new(0, 6)
 
--- Функция установки фона
+-- СОЗДАЕМ ImageLabel ДЛЯ ФОНА (если его еще нет)
+local backgroundImage = Instance.new("ImageLabel")
+backgroundImage.Size = UDim2.new(1, 0, 1, 0)
+backgroundImage.BackgroundTransparency = 1
+backgroundImage.ImageTransparency = 0.7
+backgroundImage.ZIndex = 0
+backgroundImage.Parent = MainFrame
+-- Отправляем в самый низ
+backgroundImage:MoveToFront()
+
 local function SetBackground(assetId)
     if assetId and assetId ~= "" then
-        local imageUrl = "rbxassetid://" .. tostring(assetId)
-        MainFrame.BackgroundImage = imageUrl
-        MainFrame.BackgroundImageTransparency = 0.7  -- Немного прозрачный
-        ShowNotification("Background applied!", false)
+        local success, result = pcall(function()
+            return "rbxassetid://" .. tostring(assetId)
+        end)
+        if success then
+            backgroundImage.Image = result
+            backgroundImage.ImageTransparency = 0.6
+            ShowNotification("Background applied! (Transparency 0.6)", false)
+        else
+            ShowNotification("Invalid Asset ID!", true)
+        end
     else
-        ShowNotification("Invalid Asset ID!", true)
+        ShowNotification("Enter an Asset ID first!", true)
     end
 end
 
@@ -1240,7 +1256,7 @@ applyBgBtn.MouseButton1Click:Connect(function()
 end)
 
 removeBgBtn.MouseButton1Click:Connect(function()
-    MainFrame.BackgroundImage = ""
+    backgroundImage.Image = ""
     ShowNotification("Background removed!", false)
 end)
 
