@@ -437,6 +437,13 @@ catJumpBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Padlock find
+local padlockBtn = CreateButton(tMisc, "PadlockFound", Color3.fromRGB(200, 100, 50), function()
+    local args = {game:GetService("Players"):WaitForChild(Player.Name)}
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("PadlockDetector"):FireServer(unpack(args))
+end)
+
+
 -- Heal Toggle
 local healEnabled = false
 local healConnection = nil
