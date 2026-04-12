@@ -757,11 +757,11 @@ end)
 
 -- Mouse Key Spam (GetKeys)
 local spam = false
-local btn = CreateButton(tMisc, "Mouse Key Spam: OFF", Color3.fromRGB(70, 70, 70), function()
+local spamBtn = CreateButton(tMisc, "Mouse Key Spam: OFF", Color3.fromRGB(70, 70, 70), function()
     spam = not spam
     if spam then
-        btn.Text = "Mouse Key Spam: ON"
-        btn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        spamBtn.Text = "Mouse Key Spam: ON"
+        spamBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
         task.spawn(function()
             while spam do
                 game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("GetKeys"):FireServer()
@@ -769,10 +769,11 @@ local btn = CreateButton(tMisc, "Mouse Key Spam: OFF", Color3.fromRGB(70, 70, 70
             end
         end)
     else
-        btn.Text = "Mouse Key Spam: OFF"
-        btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        spamBtn.Text = "Mouse Key Spam: OFF"
+        spamBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end
 end)
+
 
 -- PieinfinityHeal Toggle
 local pieHealEnabled = false
