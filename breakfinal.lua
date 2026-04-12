@@ -542,10 +542,15 @@ CreateButton(tMisc, "Open Basement", Color3.fromRGB(100, 80, 200), function()
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UnlockDoor"):FireServer()
 end)
 
--- ScaryLarry End Button
+-- ScaryLarry End Button (GetKeys + CarEnding)
 CreateButton(tMisc, "ScaryLarry End", Color3.fromRGB(180, 50, 180), function()
-    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("GetKeys"):FireServer()
+    local RS = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents")
+    RS:WaitForChild("GetKeys"):FireServer()
+    task.wait(0.1)
+    RS:WaitForChild("CarEnding"):FireServer()
+    ShowNotification("ScaryLarry End triggered! (GetKeys + CarEnding)", false)
 end)
+
 
 -- Turn on basement Button
 CreateButton(tMisc, "Turn on basement", Color3.fromRGB(80, 150, 80), function()
