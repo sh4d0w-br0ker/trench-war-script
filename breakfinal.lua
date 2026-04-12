@@ -755,22 +755,24 @@ catSpamBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Mouse Key Spam (GetKeys)
-local spam = false
-local spamBtn = CreateButton(tMisc, "Mouse Key Spam: OFF", Color3.fromRGB(70, 70, 70), function()
-    spam = not spam
-    if spam then
-        spamBtn.Text = "Mouse Key Spam: ON"
-        spamBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+-- MOUSE Spam
+local getKeysSpamEnabled = false
+local getKeysSpamBtn = CreateButton(tMisc, "GetKeys Spam: OFF", Color3.fromRGB(70, 70, 70), function() end)
+
+getKeysSpamBtn.MouseButton1Click:Connect(function()
+    getKeysSpamEnabled = not getKeysSpamEnabled
+    if getKeysSpamEnabled then
+        getKeysSpamBtn.Text = "GetKeys Spam: ON"
+        getKeysSpamBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
         task.spawn(function()
-            while spam do
-                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("GetKeys"):FireServer()
-                task.wait()
+            while getKeysSpamEnabled do
+                game:GetService("ReplicatedStorage").RemoteEvents.GetKeys:FireServer()
+                task.wait(0.2)
             end
         end)
     else
-        spamBtn.Text = "Mouse Key Spam: OFF"
-        spamBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        getKeysSpamBtn.Text = "GetKeys Spam: OFF"
+        getKeysSpamBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end
 end)
 
