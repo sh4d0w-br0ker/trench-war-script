@@ -762,7 +762,7 @@ local getKeysSpamBtn = CreateButton(tMisc, "GetKeys Spam: OFF", Color3.fromRGB(7
 getKeysSpamBtn.MouseButton1Click:Connect(function()
     getKeysSpamEnabled = not getKeysSpamEnabled
     if getKeysSpamEnabled then
-        getKeysSpamBtn.Text = "GetKeys Spam: ON"
+        getKeysSpamBtn.Text = "Mouse Spam: ON"
         getKeysSpamBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
         task.spawn(function()
             while getKeysSpamEnabled do
@@ -771,7 +771,7 @@ getKeysSpamBtn.MouseButton1Click:Connect(function()
             end
         end)
     else
-        getKeysSpamBtn.Text = "GetKeys Spam: OFF"
+        getKeysSpamBtn.Text = "Mouse Spam: OFF"
         getKeysSpamBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end
 end)
