@@ -628,8 +628,18 @@ local healAllBtn = CreateButton(tMisc, "Heal All", Color3.fromRGB(50, 150, 100),
             task.wait(0.05)
         end
         
-        -- Удаляем MedKit
+        -- Снимаем экипировку (Unequip)
+        local character = Player.Character
+        if character then
+            local tool = character:FindFirstChild("MedKit")
+            if tool then
+                tool.Parent = backpack
+            end
+        end
+        
         task.wait(0.2)
+        
+        -- Удаляем MedKit
         if medKit then
             game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(medKit.Name)
         end
