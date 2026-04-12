@@ -820,9 +820,56 @@ catSpamBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Cure Self Button (один Cure)
+local cureSelfBtn = CreateButton(tMisc, "CureHeal Me", Color3.fromRGB(100, 200, 100), function()
+    task.spawn(function()
+        -- Выдаем один Cure
+        game:GetService("ReplicatedStorage").RemoteEvents.GiveTool:FireServer("Cure")
+        task.wait(0.3)
+        
+        -- Находим Cure в инвентаре и экипируем
+        local backpack = Player.Backpack
+        local cure = nil
+        for _, tool in pairs(backpack:GetChildren()) do
+            if tool.Name == "Cure" then
+                cure = tool
+                break
+            end
+        end
+        
+        if cure then
+            -- Экипируем Cure
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer("Equip", cure)
+            task.wait(0.2)
+        end
+        
+        -- Хилим себя 3 раза
+        for i = 1, 3 do
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("CurePlayer"):FireServer(Player)
+            task.wait(0.1)
+        end
+        
+        -- Снимаем экипировку (Unequip)
+        local character = Player.Character
+        if character then
+            local tool = character:FindFirstChild("Cure")
+            if tool then
+                tool.Parent = backpack
+            end
+        end
+        
+        task.wait(0.2)
+        
+        -- Удаляем Cure
+        if cure then
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(cure.Name)
+        end
+    end)
+end)
+
 -- MOUSE Spam
 local getKeysSpamEnabled = false
-local getKeysSpamBtn = CreateButton(tMisc, "GetKeys Spam: OFF", Color3.fromRGB(70, 70, 70), function() end)
+local getKeysSpamBtn = CreateButton(tMisc, "Mouse Spam: OFF", Color3.fromRGB(70, 70, 70), function() end)
 
 getKeysSpamBtn.MouseButton1Click:Connect(function()
     getKeysSpamEnabled = not getKeysSpamEnabled
