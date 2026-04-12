@@ -598,6 +598,22 @@ local healAllBtn = CreateButton(tMisc, "Heal All", Color3.fromRGB(50, 150, 100),
         game:GetService("ReplicatedStorage").RemoteEvents.GiveTool:FireServer("MedKit")
         task.wait(0.3)
         
+        -- Находим MedKit в инвентаре и экипируем
+        local backpack = Player.Backpack
+        local medKit = nil
+        for _, tool in pairs(backpack:GetChildren()) do
+            if tool.Name == "MedKit" then
+                medKit = tool
+                break
+            end
+        end
+        
+        if medKit then
+            -- Экипируем MedKit
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer("Equip", medKit)
+            task.wait(0.2)
+        end
+        
         -- Получаем список всех игроков
         local allPlayers = {}
         for _, plr in pairs(game:GetService("Players"):GetPlayers()) do
@@ -608,24 +624,20 @@ local healAllBtn = CreateButton(tMisc, "Heal All", Color3.fromRGB(50, 150, 100),
         
         -- Лечим всех
         for _, plr in pairs(allPlayers) do
-            local healArgs = {plr}
-            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("HealPlayer"):FireServer(unpack(healArgs))
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("HealPlayer"):FireServer(plr)
             task.wait(0.05)
         end
         
-        -- Удаляем MedKit из инвентаря
+        -- Удаляем MedKit
         task.wait(0.2)
-        local backpack = Player.Backpack
-        for _, tool in pairs(backpack:GetChildren()) do
-            if tool.Name == "MedKit" then
-                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(tool.Name)
-                break
-            end
+        if medKit then
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(medKit.Name)
         end
         
         ShowNotification("Healed " .. #allPlayers .. " players!", false)
     end)
 end)
+
 
 -- Find safe
 CreateButton(tMisc, "Find Safe", Color3.fromRGB(120, 120, 200), function()
