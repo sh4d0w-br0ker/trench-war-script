@@ -591,17 +591,12 @@ CreateButton(tMisc, "Open Attic", Color3.fromRGB(150, 100, 50), function()
     end
 end)
 
--- Heal All Button
+-- Heal All Button (один MedKit)
 local healAllBtn = CreateButton(tMisc, "Heal All", Color3.fromRGB(50, 150, 100), function()
     task.spawn(function()
-        -- Выдаем два MedKit
-        for i = 1, 2 do
-            game:GetService("ReplicatedStorage").RemoteEvents.GiveTool:FireServer("MedKit")
-            task.wait(0.1)
-        end
-        
-        -- Ждем появления MedKit в инвентаре
-        task.wait(0.5)
+        -- Выдаем один MedKit
+        game:GetService("ReplicatedStorage").RemoteEvents.GiveTool:FireServer("MedKit")
+        task.wait(0.3)
         
         -- Получаем список всех игроков
         local allPlayers = {}
@@ -611,68 +606,24 @@ local healAllBtn = CreateButton(tMisc, "Heal All", Color3.fromRGB(50, 150, 100),
             end
         end
         
-        -- Перемешиваем список
-        for i = #allPlayers, 2, -1 do
-            local j = math.random(i)
-            allPlayers[i], allPlayers[j] = allPlayers[j], allPlayers[i]
+        -- Лечим всех
+        for _, plr in pairs(allPlayers) do
+            local healArgs = {plr}
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("HealPlayer"):FireServer(unpack(healArgs))
+            task.wait(0.05)
         end
         
-        -- Берем первых 6 (или сколько есть)
-        local healList = {}
-        for i = 1, math.min(6, #allPlayers) do
-            table.insert(healList, allPlayers[i])
-        end
-        
-        -- Запоминаем кого уже лечили
-        local healed = {}
-        
-        -- Достаем MedKit из инвентаря
+        -- Удаляем MedKit из инвентаря
+        task.wait(0.2)
         local backpack = Player.Backpack
-        local medKits = {}
-        
-        -- Собираем все MedKit
         for _, tool in pairs(backpack:GetChildren()) do
             if tool.Name == "MedKit" then
-                table.insert(medKits, tool)
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(tool.Name)
+                break
             end
         end
         
-        -- Лечим каждым MedKit
-        for kitIndex, medKit in pairs(medKits) do
-            if kitIndex > 2 then break end -- только два MedKit
-            
-            -- Экипируем MedKit
-            local argsEquip = {"Equip", medKit}
-            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer(unpack(argsEquip))
-            task.wait(0.2)
-            
-            -- Лечим игроков (каждым MedKit лечим тех, кого еще не лечили)
-            local toHeal = {}
-            for _, plr in pairs(healList) do
-                if not healed[plr.Name] then
-                    table.insert(toHeal, plr)
-                    healed[plr.Name] = true
-                    if #toHeal >= 6 then break end
-                end
-            end
-            
-            -- Если некого лечить, выходим
-            if #toHeal == 0 then break end
-            
-            -- Лечим выбранных игроков
-            for _, plr in pairs(toHeal) do
-                local healArgs = {plr}
-                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("HealPlayer"):FireServer(unpack(healArgs))
-                task.wait(0.05)
-            end
-            
-            -- Снимаем MedKit (дропаем)
-            local dropArgs = {medKit.Name}
-            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(unpack(dropArgs))
-            task.wait(0.1)
-        end
-        
-        ShowNotification("Healed " .. #healList .. " players!", false)
+        ShowNotification("Healed " .. #allPlayers .. " players!", false)
     end)
 end)
 
