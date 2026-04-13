@@ -917,16 +917,16 @@ CreateButton(tMisc, "Kill Me", Color3.fromRGB(180, 50, 50), function()
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Energy"):FireServer(unpack(args))
 end)
 
--- ===== ВКЛАДКА ENERGY =====
-local tEnergy = CreateTab("Energy")
+-- ===== ВКЛАДКА OTHERS =====
+local tOthers = CreateTab("Others")
 
 -- Секция для управления энергией
 local energySection = Instance.new("Frame")
-energySection.Size = UDim2.new(1, -10, 0, 100)
+energySection.Size = UDim2.new(1, -10, 0, 200)
 energySection.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 energySection.BackgroundTransparency = 0.3
 energySection.BorderSizePixel = 0
-energySection.Parent = tEnergy
+energySection.Parent = tOthers
 
 local energyCorner = Instance.new("UICorner", energySection)
 energyCorner.CornerRadius = UDim.new(0, 8)
@@ -981,6 +981,146 @@ minusBtn.MouseButton1Click:Connect(function()
         game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("Energy"):FireServer(unpack(args))
     end
 end)
+
+-- Кнопка Items
+local selectedItem = nil
+local itemsBtn = Instance.new("TextButton")
+itemsBtn.Size = UDim2.new(1, -20, 0, 35)
+itemsBtn.Position = UDim2.new(0, 10, 0, 120)
+itemsBtn.Text = "Items: None"
+itemsBtn.Font = Enum.Font.GothamSemibold
+itemsBtn.TextSize = 12
+itemsBtn.TextColor3 = Color3.new(1,1,1)
+itemsBtn.BackgroundColor3 = Color3.fromRGB(80, 100, 200)
+itemsBtn.BorderSizePixel = 0
+itemsBtn.Parent = energySection
+Instance.new("UICorner", itemsBtn).CornerRadius = UDim.new(0, 6)
+
+-- Кнопка Delete item
+local deleteItemBtn = Instance.new("TextButton")
+deleteItemBtn.Size = UDim2.new(1, -20, 0, 35)
+deleteItemBtn.Position = UDim2.new(0, 10, 0, 160)
+deleteItemBtn.Text = "Delete Item"
+deleteItemBtn.Font = Enum.Font.GothamSemibold
+deleteItemBtn.TextSize = 12
+deleteItemBtn.TextColor3 = Color3.new(1,1,1)
+deleteItemBtn.BackgroundColor3 = Color3.fromRGB(200, 80, 80)
+deleteItemBtn.BorderSizePixel = 0
+deleteItemBtn.Parent = energySection
+Instance.new("UICorner", deleteItemBtn).CornerRadius = UDim.new(0, 6)
+
+-- Функция для получения списка предметов
+local function GetItemsList()
+    local items = {}
+    local backpack = Player.Backpack
+    for _, tool in pairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            table.insert(items, tool.Name)
+        end
+    end
+    local character = Player.Character
+    if character then
+        for _, tool in pairs(character:GetChildren()) do
+            if tool:IsA("Tool") then
+                table.insert(items, tool.Name)
+            end
+        end
+    end
+    return items
+end
+
+-- Окно выбора предмета
+itemsBtn.MouseButton1Click:Connect(function()
+    local itemsWindow = Instance.new("Frame")
+    itemsWindow.Size = UDim2.new(0, 250, 0, 300)
+    itemsWindow.Position = UDim2.new(0.5, -125, 0.5, -150)
+    itemsWindow.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    itemsWindow.BorderSizePixel = 0
+    itemsWindow.Parent = ScreenGui
+    Instance.new("UICorner", itemsWindow).CornerRadius = UDim.new(0, 8)
+    
+    local winHeader = Instance.new("Frame")
+    winHeader.Size = UDim2.new(1, 0, 0, 30)
+    winHeader.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    winHeader.Parent = itemsWindow
+    Instance.new("UICorner", winHeader).CornerRadius = UDim.new(0, 8)
+    
+    local winTitle = Instance.new("TextLabel")
+    winTitle.Size = UDim2.new(1, -60, 1, 0)
+    winTitle.Position = UDim2.new(0, 10, 0, 0)
+    winTitle.Text = "Select Item"
+    winTitle.TextColor3 = Color3.new(1, 1, 1)
+    winTitle.BackgroundTransparency = 1
+    winTitle.Font = Enum.Font.GothamBold
+    winTitle.TextXAlignment = Enum.TextXAlignment.Left
+    winTitle.Parent = winHeader
+    
+    local winClose = Instance.new("TextButton")
+    winClose.Size = UDim2.new(0, 30, 1, 0)
+    winClose.Position = UDim2.new(1, -30, 0, 0)
+    winClose.Text = "✕"
+    winClose.TextColor3 = Color3.fromRGB(255, 80, 80)
+    winClose.BackgroundTransparency = 1
+    winClose.Parent = winHeader
+    winClose.MouseButton1Click:Connect(function() itemsWindow:Destroy() end)
+    
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -10, 1, -40)
+    scroll.Position = UDim2.new(0, 5, 0, 35)
+    scroll.BackgroundTransparency = 1
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.ScrollBarThickness = 6
+    scroll.Parent = itemsWindow
+    Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 2)
+    
+    local items = GetItemsList()
+    if #items == 0 then
+        local noItems = Instance.new("TextLabel")
+        noItems.Size = UDim2.new(1, -10, 0, 30)
+        noItems.Text = "No items found!"
+        noItems.TextColor3 = Color3.fromRGB(255, 100, 100)
+        noItems.BackgroundTransparency = 1
+        noItems.Parent = scroll
+    else
+        for _, itemName in pairs(items) do
+            local itemBtn = Instance.new("TextButton")
+            itemBtn.Size = UDim2.new(1, -10, 0, 30)
+            itemBtn.Text = itemName
+            itemBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            itemBtn.Font = Enum.Font.Gotham
+            itemBtn.TextColor3 = Color3.new(1, 1, 1)
+            itemBtn.TextSize = 12
+            itemBtn.Parent = scroll
+            Instance.new("UICorner", itemBtn).CornerRadius = UDim.new(0, 4)
+            
+            itemBtn.MouseButton1Click:Connect(function()
+                selectedItem = itemName
+                itemsBtn.Text = "Items: " .. selectedItem
+                itemsWindow:Destroy()
+            end)
+        end
+    end
+end)
+
+-- Удаление выбранного предмета
+deleteItemBtn.MouseButton1Click:Connect(function()
+    if not selectedItem then
+        return
+    end
+    
+    local item = Player.Backpack:FindFirstChild(selectedItem)
+    if not item and Player.Character then
+        item = Player.Character:FindFirstChild(selectedItem)
+    end
+    
+    if item then
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(selectedItem)
+        selectedItem = nil
+        itemsBtn.Text = "Items: None"
+    end
+end)
+
 
 -- Вкладка SETTINGS
 local tSettings = CreateTab("Settings")
