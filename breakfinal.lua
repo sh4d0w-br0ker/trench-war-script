@@ -364,6 +364,21 @@ task.spawn(function()
     end
 end)
 
+-- Kill Random Player Button
+local killRandomBtn = CreateButton(tPlrs, "Kill Random", Color3.fromRGB(200, 50, 50), function()
+    local players = {}
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player then
+            table.insert(players, plr)
+        end
+    end
+    if #players > 0 then
+        local randomPlayer = players[math.random(1, #players)]
+        game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("ToxicDrown"):FireServer(1, randomPlayer)
+    end
+end)
+
+
 -- ===== ВКЛАДКА TELEPORT =====
 local tTeleport = CreateTab("Teleport")
 
