@@ -229,6 +229,7 @@ CreateButton(tUser, "Get Pizza2", Color3.fromRGB(200, 120, 50), function() GetTo
 CreateButton(tUser, "Get Pizza1", Color3.fromRGB(200, 120, 50), function() GetTool("Pizza1") end)
 CreateButton(tUser, "Get Key", Color3.fromRGB(30, 50, 25), function() GetTool("Key") end)
 CreateButton(tUser, "Get EpicPizza", Color3.fromRGB(77, 100, 89), function() GetTool("EpicPizza") end)
+CreateButton(tUser, "Get Pie", Color3.fromRGB(90, 50, 79), function() GetTool("Pie") end)
 
 local foodItems = {
     {"Apple", Color3.fromRGB(200, 50, 50)},
@@ -922,6 +923,28 @@ pieHealBtn.MouseButton1Click:Connect(function()
         end)
     else
         pieHealBtn.Text = "PieinfinityHeal: OFF"
+        pieHealBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end
+end)
+
+-- PieinfinityHeal Toggle
+local pieHealEnabled = false
+local pieHealBtn = CreateButton(tMisc, "2-PieinfinityHeal: OFF", Color3.fromRGB(70, 70, 70), function() end)
+
+pieHealBtn.MouseButton1Click:Connect(function()
+    pieHealEnabled = not pieHealEnabled
+    if pieHealEnabled then
+        pieHealBtn.Text = "2-PieinfinityHeal: ON"
+        pieHealBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        task.spawn(function()
+            while pieHealEnabled do
+                local args = {false, -1, math.huge, false}
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("EatPie"):FireServer(unpack(args))
+                task.wait(0.1)
+            end
+        end)
+    else
+        pieHealBtn.Text = "2-PieinfinityHeal: OFF"
         pieHealBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end
 end)
