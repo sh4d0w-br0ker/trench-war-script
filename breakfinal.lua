@@ -971,7 +971,7 @@ energyCorner.CornerRadius = UDim.new(0, 8)
 
 -- Заголовок
 local energyTitle = Instance.new("TextLabel")
-energyTitle.Text = "Energy Control"
+energyTitle.Text = "Others Functions..."
 energyTitle.Font = Enum.Font.GothamBold
 energyTitle.TextSize = 13
 energyTitle.TextColor3 = Color3.fromRGB(200, 200, 220)
