@@ -1159,6 +1159,128 @@ deleteItemBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- ===== ВЫБОР ИГРОКА + PADLOCK DETECTOR =====
+
+-- Фрейм для секции
+local padlockSection = Instance.new("Frame")
+padlockSection.Size = UDim2.new(1, -10, 0, 100)
+padlockSection.Position = UDim2.new(0, 5, 0, 215)
+padlockSection.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+padlockSection.BackgroundTransparency = 0.3
+padlockSection.BorderSizePixel = 0
+padlockSection.Parent = tOthers
+
+Instance.new("UICorner", padlockSection).CornerRadius = UDim.new(0, 8)
+
+-- Синяя кнопка выбора игрока
+local selectPlayerBtn = Instance.new("TextButton")
+selectPlayerBtn.Size = UDim2.new(1, -20, 0, 35)
+selectPlayerBtn.Position = UDim2.new(0, 10, 0, 10)
+selectPlayerBtn.Text = "player: none"
+selectPlayerBtn.Font = Enum.Font.GothamSemibold
+selectPlayerBtn.TextSize = 12
+selectPlayerBtn.TextColor3 = Color3.new(1, 1, 1)
+selectPlayerBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+selectPlayerBtn.BorderSizePixel = 0
+selectPlayerBtn.Parent = padlockSection
+Instance.new("UICorner", selectPlayerBtn).CornerRadius = UDim.new(0, 6)
+
+-- Кнопка Finder Padlock!
+local finderPadlockBtn = Instance.new("TextButton")
+finderPadlockBtn.Size = UDim2.new(1, -20, 0, 35)
+finderPadlockBtn.Position = UDim2.new(0, 10, 0, 55)
+finderPadlockBtn.Text = "Finder Padlock!"
+finderPadlockBtn.Font = Enum.Font.GothamSemibold
+finderPadlockBtn.TextSize = 12
+finderPadlockBtn.TextColor3 = Color3.new(1, 1, 1)
+finderPadlockBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 50)
+finderPadlockBtn.BorderSizePixel = 0
+finderPadlockBtn.Parent = padlockSection
+Instance.new("UICorner", finderPadlockBtn).CornerRadius = UDim.new(0, 6)
+
+-- Переменная для выбранного игрока
+local selectedPadlockPlayer = nil
+
+-- Функция открытия окна со списком игроков
+local function OpenPlayerList()
+    local playerWindow = Instance.new("Frame")
+    playerWindow.Size = UDim2.new(0, 250, 0, 350)
+    playerWindow.Position = UDim2.new(0.5, -125, 0.5, -175)
+    playerWindow.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    playerWindow.BorderSizePixel = 0
+    playerWindow.Parent = ScreenGui
+    Instance.new("UICorner", playerWindow).CornerRadius = UDim.new(0, 8)
+
+    local winHeader = Instance.new("Frame")
+    winHeader.Size = UDim2.new(1, 0, 0, 35)
+    winHeader.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    winHeader.Parent = playerWindow
+    Instance.new("UICorner", winHeader).CornerRadius = UDim.new(0, 8)
+
+    local winTitle = Instance.new("TextLabel")
+    winTitle.Size = UDim2.new(1, -60, 1, 0)
+    winTitle.Position = UDim2.new(0, 10, 0, 0)
+    winTitle.Text = "Select Player"
+    winTitle.TextColor3 = Color3.new(1, 1, 1)
+    winTitle.BackgroundTransparency = 1
+    winTitle.Font = Enum.Font.GothamBold
+    winTitle.TextXAlignment = Enum.TextXAlignment.Left
+    winTitle.Parent = winHeader
+
+    local winClose = Instance.new("TextButton")
+    winClose.Size = UDim2.new(0, 35, 1, 0)
+    winClose.Position = UDim2.new(1, -35, 0, 0)
+    winClose.Text = "✕"
+    winClose.TextColor3 = Color3.fromRGB(255, 80, 80)
+    winClose.BackgroundTransparency = 1
+    winClose.Parent = winHeader
+    winClose.MouseButton1Click:Connect(function() playerWindow:Destroy() end)
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -10, 1, -45)
+    scroll.Position = UDim2.new(0, 5, 0, 40)
+    scroll.BackgroundTransparency = 1
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.ScrollBarThickness = 6
+    scroll.Parent = playerWindow
+
+    local layout = Instance.new("UIListLayout", scroll)
+    layout.Padding = UDim.new(0, 3)
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        local playerBtn = Instance.new("TextButton")
+        playerBtn.Size = UDim2.new(1, -10, 0, 35)
+        playerBtn.Text = plr.Name
+        playerBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        playerBtn.Font = Enum.Font.Gotham
+        playerBtn.TextColor3 = Color3.new(1, 1, 1)
+        playerBtn.TextSize = 13
+        playerBtn.Parent = scroll
+        Instance.new("UICorner", playerBtn).CornerRadius = UDim.new(0, 5)
+
+        playerBtn.MouseButton1Click:Connect(function()
+            selectedPadlockPlayer = plr
+            selectPlayerBtn.Text = "player: " .. plr.Name
+            playerWindow:Destroy()
+        end)
+    end
+end
+
+-- Клик по синей кнопке
+selectPlayerBtn.MouseButton1Click:Connect(OpenPlayerList)
+
+-- Клик по Finder Padlock!
+finderPadlockBtn.MouseButton1Click:Connect(function()
+    if not selectedPadlockPlayer then
+        return
+    end
+    
+    local args = { selectedPadlockPlayer }
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("PadlockDetector"):FireServer(unpack(args))
+end)
+
+
 
 -- Вкладка SETTINGS
 local tSettings = CreateTab("Settings")
