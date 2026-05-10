@@ -175,7 +175,7 @@ task.spawn(function()
     end
 end)
 
---- ESP LOGIC - ИСПРАВЛЕН ---
+--- ESP LOGIC (ИСПРАВЛЕНО) ---
 local EspBtn = Instance.new("TextButton", OthersPage)
 EspBtn.Size = UDim2.new(1, -10, 0, 35)
 EspBtn.Text = "ESP: OFF"
@@ -184,8 +184,26 @@ EspBtn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
 
 local espActive = false
 
+-- Вспомогательная функция: всегда получаем позицию объекта (Part или Model)
+local function getObjectPosition(obj)
+    if obj:IsA("BasePart") then
+        return obj.Position
+    elseif obj:IsA("Model") then
+        local primary = obj.PrimaryPart
+        if primary then
+            return primary.Position
+        else
+            local anyPart = obj:FindFirstChildWhichIsA("BasePart")
+            if anyPart then
+                return anyPart.Position
+            end
+        end
+    end
+    return nil
+end
+
 local function createEspTag(object)
-    if object:FindFirstChild("ESP_Tag_High") then return end
+    if object:FindFirstChild("ESP_Tag") then return end
     
     local name = object.Name
     local parentName = (object.Parent and object.Parent.Name) or ""
@@ -194,47 +212,45 @@ local function createEspTag(object)
     end
 
     local bg = Instance.new("BillboardGui")
-    bg.Name = "ESP_Tag_High"
+    bg.Name = "ESP_Tag"
     bg.Parent = object
-    bg.Size = UDim2.new(0, 200, 0, 50)
+    bg.Size = UDim2.new(0, 240, 0, 60)   -- чуть больше
     bg.AlwaysOnTop = true
-    bg.ExtentsOffset = Vector3.new(0, 3, 0) -- ВЫШЕ УРОВНЕМ
-    bg.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    bg.Enabled = true
-    bg.ClipsDescendants = false
+    bg.ExtentsOffset = Vector3.new(0, 3.5, 0)  -- ПОДНЯТ ВЫШЕ (было 1.5)
+    bg.AutoLocalize = false
+    bg.MaxDistance = 1000
     
     local tl = Instance.new("TextLabel", bg)
     tl.Name = "ESP_Label"
     tl.Size = UDim2.new(1, 0, 1, 0)
     tl.BackgroundTransparency = 1
-    tl.TextColor3 = Color3.fromRGB(255, 0, 0)
+    tl.TextColor3 = Color3.fromRGB(255, 80, 80)  -- ярче
     tl.Font = Enum.Font.GothamBold
-    tl.TextSize = 14
-    tl.TextStrokeTransparency = 0.3
-    tl.Text = "Killer"
-    tl.TextScaled = false
+    tl.TextSize = 16
+    tl.TextStrokeTransparency = 0.4
+    tl.Text = "Killer\n[0 studs]"
+    tl.AutoLocalize = false
     
     task.spawn(function()
-        while object and object:IsDescendantOf(workspace) and bg.Parent do
+        while object:IsDescendantOf(workspace) and bg.Parent do
             if espActive then
                 bg.Enabled = true
-                local char = game.Players.LocalPlayer.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                 
-                local targetPart = object:IsA("BasePart") and object or (object:FindFirstChild("HumanoidRootPart") or object.PrimaryPart or object:FindFirstChildWhichIsA("BasePart"))
-                
-                if hrp and targetPart then
-                    local dist = math.floor((hrp.Position - targetPart.Position).Magnitude)
-                    -- ЕБАНУТЫЙ ОТПРАВИТЕЛЬ - ДИСТАНЦИЯ ВСЕГДА ПОКАЗЫВАЕТСЯ, НИКАКИХ else
-                    tl.Text = "Killer\n[" .. dist .. " studs]"
-                else
-                    -- ДАЖЕ ЕСЛИ HRP НЕТ, ВСЕ РАВНО ПИШЕМ ХОТЬ КАКОЙ ТЕКСТ С ДИСТАНЦИЕЙ
-                    tl.Text = "Killer\n[? studs]"
+                -- Всегда считаем дистанцию, даже если hrp или позиция объекта временно пропали
+                local distance = 0
+                if hrp then
+                    local objPos = getObjectPosition(object)
+                    if objPos then
+                        distance = math.floor((hrp.Position - objPos).Magnitude)
+                    end
                 end
+                -- ВСЕГДА показываем дистанцию (даже если = 0) — НИКАКИХ else
+                tl.Text = "Killer\n[" .. distance .. " studs]"
             else
                 bg.Enabled = false
             end
-            task.wait(0.05) -- БЫСТРОЕ ОБНОВЛЕНИЕ ДЛЯ ПЛАВНОСТИ
+            task.wait(0.1)
         end
         if bg then bg:Destroy() end
     end)
@@ -258,7 +274,6 @@ EspBtn.MouseButton1Click:Connect(function()
     
     if espActive then
         for _, v in pairs(workspace:GetDescendants()) do
-            task.wait()
             checkAndAdd(v)
         end
     end
@@ -266,7 +281,7 @@ end)
 
 workspace.DescendantAdded:Connect(function(descendant)
     if espActive then
-        task.wait(0.1)
+        task.wait(0.2)
         checkAndAdd(descendant)
     end
 end)
