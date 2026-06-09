@@ -482,15 +482,21 @@ RunService.Heartbeat:Connect(function()
     -- ESP Ambush
 if EspStates.Ambush then
     local ambushMoving = workspace:FindFirstChild("AmbushMoving")
+    local ambushObject = nil
+    
     if ambushMoving then
-        updateESP("Ambush", ambushMoving, "Ambush", Color3.fromRGB(0, 100, 0), true)
+        ambushObject = ambushMoving:FindFirstChild("RushNew") or ambushMoving:FindFirstChild("RushNow")
+    end
+    
+    if ambushObject then
+        updateESP("Ambush", ambushObject, "Ambush", Color3.fromRGB(0, 100, 0), true)
     else
         updateESP("Ambush", nil, "", Color3.fromRGB(0, 100, 0), false)
     end
 else
     updateESP("Ambush", nil, "", Color3.fromRGB(0, 100, 0), false)
         end
-
+        
     -- ESP Door
     if EspStates.Door and pLastRoom then
         local realDoor = pLastRoom.obj:FindFirstChild("Door") and pLastRoom.obj.Door:FindFirstChild("Door")
