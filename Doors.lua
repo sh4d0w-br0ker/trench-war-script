@@ -448,37 +448,39 @@ RunService.Heartbeat:Connect(function()
     end
 
     -- ESP Figura
-    if EspStates.Figura then
-        local currentRooms = workspace:FindFirstChild("CurrentRooms")
-        if currentRooms then
-            local room50 = currentRooms:FindFirstChild("50")
-            if room50 then
-                local figureSetup = room50:FindFirstChild("FigureSetup")
+if EspStates.Figura then
+    local currentRooms = workspace:FindFirstChild("CurrentRooms")
+    local hitbox = nil
+    
+    if currentRooms then
+        local roomNumbers = {"50", "100"}
+        
+        for _, roomNum in ipairs(roomNumbers) do
+            local room = currentRooms:FindFirstChild(roomNum)
+            if room then
+                local figureSetup = room:FindFirstChild("FigureSetup")
                 if figureSetup then
                     local figureRig = figureSetup:FindFirstChild("FigureRig")
                     if figureRig then
-                        local hitbox = figureRig:FindFirstChild("Hitbox")
+                        hitbox = figureRig:FindFirstChild("Hitbox")
                         if hitbox then
-                            updateESP("Figura", hitbox, "Figure", Color3.fromRGB(255, 0, 0), true)
-                        else
-                            updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
+                            break
                         end
-                    else
-                        updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
                     end
-                else
-                    updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
                 end
-            else
-                updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
             end
-        else
-            updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
         end
+    end
+    
+    if hitbox then
+        updateESP("Figura", hitbox, "Figure", Color3.fromRGB(255, 0, 0), true)
     else
         updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
     end
-
+else
+    updateESP("Figura", nil, "", Color3.fromRGB(255, 0, 0), false)
+        end
+        
     -- ESP Ambush
 if EspStates.Ambush then
     local ambushMoving = workspace:FindFirstChild("AmbushMoving")
