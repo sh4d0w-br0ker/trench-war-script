@@ -494,12 +494,12 @@ if EspStates.Ambush then
     end
 
     if ambushObject then
-        updateESP("Ambush", ambushObject, "Ambush", Color3.fromRGB(0, 100, 0), true)
+        updateESP("Ambush", ambushObject, "Ambush", Color3.fromRGB(255, 0, 0), true)
     else
-        updateESP("Ambush", nil, "", Color3.fromRGB(0, 100, 0), false)
+        updateESP("Ambush", nil, "", Color3.fromRGB(255, 0, 0), false)
     end
 else
-    updateESP("Ambush", nil, "", Color3.fromRGB(0, 100, 0), false)
+    updateESP("Ambush", nil, "", Color3.fromRGB(255, 0, 0), false)
         end
 
     -- ESP ItemDrop
