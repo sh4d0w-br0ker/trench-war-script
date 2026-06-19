@@ -318,7 +318,6 @@ createToggle("Esp item off/on", UDim2.new(0, 20, 0, 120), "Item", EspPage)
 createToggle("Esp LockBox off/on", UDim2.new(0, 20, 0, 170), "LockBox", EspPage)
 createToggle("Esp UnLockbox off/on", UDim2.new(0, 20, 0, 220), "UnLockBox", EspPage)
 createToggle("Esp chest off/on", UDim2.new(0, 20, 0, 270), "Chest", EspPage)
-createToggle("Esp book off/on", UDim2.new(0, 20, 0, 320), "Book", EspPage)
 createToggle("Esp Lever off/on", UDim2.new(0, 20, 0, 370), "Lever", EspPage)
 createToggle("Esp ItemDrop off/on", UDim2.new(0, 20, 0, 420), "ItemDrop", EspPage)
 
@@ -754,6 +753,61 @@ RunService.Heartbeat:Connect(function()
         updateESP("Key", nil, "", Color3.fromRGB(255, 255, 0), false)
     end
 
+    -- ESP LiveBreaker (исправленная)
+if EspStates.LiveBreaker then
+    local currentRooms = workspace:FindFirstChild("CurrentRooms")
+    local liveBreakers = {}
+
+    if currentRooms then
+        local room100 = currentRooms:FindFirstChild("100")
+        if room100 then
+            local children = room100:GetChildren()
+            for idx, child in ipairs(children) do
+                if child:IsA("Folder") or child:IsA("Model") then
+                    -- Ищем imstuff (регистронезависимо)
+                    local imstuff = nil
+                    for _, obj in ipairs(child:GetChildren()) do
+                        if obj.Name and string.lower(obj.Name) == "imstuff" then
+                            imstuff = obj
+                            break
+                        end
+                    end
+                    if imstuff then
+                        table.insert(liveBreakers, imstuff)
+                    end
+                end
+            end
+        end
+    end
+
+    for idx, breaker in ipairs(liveBreakers) do
+        updateESP("LiveBreaker_" .. idx, breaker, "LiveBreaker", Color3.fromRGB(0, 200, 255), true)
+    end
+
+    for k, v in pairs(activeHighlights) do
+        if type(k) == "string" and string.sub(k, 1, 12) == "LiveBreaker_" then
+            local stillExists = false
+            for _, breaker in ipairs(liveBreakers) do
+                if v and v.Parent == breaker then
+                    stillExists = true
+                    break
+                end
+            end
+            if not stillExists then
+                if v then v:Destroy() end
+                activeHighlights[k] = nil
+            end
+        end
+    end
+else
+    for k, v in pairs(activeHighlights) do
+        if type(k) == "string" and string.sub(k, 1, 12) == "LiveBreaker_" then
+            if v then v:Destroy() end
+            activeHighlights[k] = nil
+        end
+    end
+        end
+        
     -- ESP Key100
     if EspStates.Key100 then
         local currentRooms = workspace:FindFirstChild("CurrentRooms")
@@ -779,62 +833,7 @@ RunService.Heartbeat:Connect(function()
         updateESP("Key100", nil, "", Color3.fromRGB(0, 200, 255), false)
     end
 
-    -- ESP LiveBreaker
-    if EspStates.LiveBreaker then
-        local currentRooms = workspace:FindFirstChild("CurrentRooms")
-        local liveBreakers = {}
-
-        if currentRooms then
-            local room100 = currentRooms:FindFirstChild("100")
-            if room100 then
-                local children = room100:GetChildren()
-                for idx, child in ipairs(children) do
-                    if child:IsA("Folder") or child:IsA("Model") then
-                        local base = child:FindFirstChild("Base")
-                        if base then
-                            local liveBreakerPickup = base.Parent:FindFirstChild("LiveBreakerPolePickup")
-                            if liveBreakerPickup then
-                                table.insert(liveBreakers, liveBreakerPickup)
-                            else
-                                local liveBreaker = child:FindFirstChild("LiveBreaker")
-                                if liveBreaker then
-                                    table.insert(liveBreakers, liveBreaker)
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        for idx, breaker in ipairs(liveBreakers) do
-            updateESP("LiveBreaker_" .. idx, breaker, "LiveBreaker", Color3.fromRGB(0, 200, 255), true)
-        end
-
-        for k, v in pairs(activeHighlights) do
-            if type(k) == "string" and string.sub(k, 1, 12) == "LiveBreaker_" then
-                local stillExists = false
-                for _, breaker in ipairs(liveBreakers) do
-                    if v and v.Parent == breaker then
-                        stillExists = true
-                        break
-                    end
-                end
-                if not stillExists then
-                    if v then v:Destroy() end
-                    activeHighlights[k] = nil
-                end
-            end
-        end
-    else
-        for k, v in pairs(activeHighlights) do
-            if type(k) == "string" and string.sub(k, 1, 12) == "LiveBreaker_" then
-                if v then v:Destroy() end
-                activeHighlights[k] = nil
-            end
-        end
-    end
-
+    
     -- ESP Lever
     if EspStates.Lever and currentRooms then
         local leversFound = {}
@@ -874,75 +873,6 @@ RunService.Heartbeat:Connect(function()
                 activeHighlights[k] = nil
             end
         end
-    end
-
-    -- ESP Book (Monster Page)
-    if EspStates.Book and currentRooms then
-        if tick() - lastBookCheck >= 2 then
-            lastBookCheck = tick()
-            local room50 = currentRooms:FindFirstChild("50")
-            local currentValid = {}
-
-            if room50 then
-                for _, obj in pairs(room50:GetDescendants()) do
-                    if obj.Name == "LiveHintBook" and obj:FindFirstChild("Base") then
-                        local bookBase = obj.Base
-                        if bookBase:IsA("BasePart") then
-                            local uniqueKey = bookBase:GetDebugId()
-                            currentValid[uniqueKey] = true
-
-                            if not activeBooks[uniqueKey] then
-                                local folder = Instance.new("Folder")
-
-                                local highlight = Instance.new("Highlight")
-                                highlight.FillColor = Color3.fromRGB(0, 255, 255)
-                                highlight.FillTransparency = 0.5
-                                highlight.Adornee = obj
-                                highlight.Parent = folder
-
-                                local bb = Instance.new("BillboardGui")
-                                bb.Size = UDim2.new(0, 200, 0, 50)
-                                bb.AlwaysOnTop = true
-                                bb.StudsOffset = Vector3.new(0, 2, 0)
-                                bb.Adornee = bookBase
-                                bb.Parent = folder
-
-                                local lbl = Instance.new("TextLabel")
-                                lbl.Size = UDim2.new(1, 0, 1, 0)
-                                lbl.BackgroundTransparency = 1
-                                lbl.TextColor3 = Color3.fromRGB(0, 255, 255)
-                                lbl.TextStrokeTransparency = 0
-                                lbl.Font = Enum.Font.SourceSansBold
-                                lbl.TextSize = 18
-                                lbl.Parent = bb
-
-                                folder.Parent = bookBase
-                                activeBooks[uniqueKey] = folder
-                            end
-
-                            local f = activeBooks[uniqueKey]
-                            local label = f:FindFirstChildOfClass("BillboardGui"):FindFirstChildOfClass("TextLabel")
-                            label.Text = "book\n[studs: " .. tostring(getDistance(bookBase)) .. "]"
-                        end
-                    end
-                end
-            end
-
-            for k, f in pairs(activeBooks) do
-                if not currentValid[k] then f:Destroy() activeBooks[k] = nil end
-            end
-        else
-            for _, f in pairs(activeBooks) do
-                if f and f.Parent and f.Parent:IsA("BasePart") then
-                    local label = f:FindFirstChildOfClass("BillboardGui"):FindFirstChildOfClass("TextLabel")
-                    if label then
-                        label.Text = "book\n[studs: " .. tostring(getDistance(f.Parent)) .. "]"
-                    end
-                end
-            end
-        end
-    else
-        clearCache(activeBooks)
     end
 
     -- ESP Book50 (50Door Page)
