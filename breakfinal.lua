@@ -379,6 +379,102 @@ local killRandomBtn = CreateButton(tPlrs, "Kill Random", Color3.fromRGB(200, 50,
     end
 end)
 
+-- Выбор игрока (как в Others)
+local selectedCurePlayer = nil
+
+local selectPlayerBtn = Instance.new("TextButton")
+selectPlayerBtn.Size = UDim2.new(1, -5, 0, 35)
+selectPlayerBtn.Text = "Player: None"
+selectPlayerBtn.Font = Enum.Font.GothamSemibold
+selectPlayerBtn.TextSize = 13
+selectPlayerBtn.TextColor3 = Color3.new(1, 1, 1)
+selectPlayerBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+selectPlayerBtn.BorderSizePixel = 0
+selectPlayerBtn.Parent = tPlrs
+Instance.new("UICorner", selectPlayerBtn).CornerRadius = UDim.new(0, 6)
+
+-- Окно выбора игрока (как в Others)
+selectPlayerBtn.MouseButton1Click:Connect(function()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 300)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -150)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    frame.Parent = ScreenGui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+    
+    local close = Instance.new("TextButton")
+    close.Size = UDim2.new(0, 30, 0, 30)
+    close.Position = UDim2.new(1, -30, 0, 0)
+    close.Text = "X"
+    close.TextColor3 = Color3.fromRGB(255, 80, 80)
+    close.BackgroundTransparency = 1
+    close.Parent = frame
+    close.MouseButton1Click:Connect(function() frame:Destroy() end)
+    
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -10, 1, -40)
+    scroll.Position = UDim2.new(0, 5, 0, 35)
+    scroll.BackgroundTransparency = 1
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.Parent = frame
+    Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 3)
+    
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            btn.Text = plr.Name
+            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            btn.TextColor3 = Color3.new(1,1,1)
+            btn.Parent = scroll
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+            btn.MouseButton1Click:Connect(function()
+                selectedCurePlayer = plr
+                selectPlayerBtn.Text = "Player: " .. plr.Name
+                frame:Destroy()
+            end)
+        end
+    end
+end)
+
+-- Кнопка CureHeal him (лечит выбранного игрока 3 раза)
+local cureHimBtn = Instance.new("TextButton")
+cureHimBtn.Size = UDim2.new(1, -5, 0, 35)
+cureHimBtn.Text = "CureHeal him"
+cureHimBtn.Font = Enum.Font.GothamSemibold
+cureHimBtn.TextSize = 13
+cureHimBtn.TextColor3 = Color3.new(1, 1, 1)
+cureHimBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+cureHimBtn.BorderSizePixel = 0
+cureHimBtn.Parent = tPlrs
+Instance.new("UICorner", cureHimBtn).CornerRadius = UDim.new(0, 6)
+
+cureHimBtn.MouseButton1Click:Connect(function()
+    if not selectedCurePlayer then return end
+    task.spawn(function()
+        game:GetService("ReplicatedStorage").RemoteEvents.GiveTool:FireServer("Cure")
+        task.wait(0.3)
+        local backpack = Player.Backpack
+        local cure = backpack:FindFirstChild("Cure")
+        if cure then
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("BackpackEvent"):FireServer("Equip", cure)
+            task.wait(0.2)
+        end
+        for i = 1, 3 do
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("CurePlayer"):FireServer(selectedCurePlayer)
+            task.wait(0.1)
+        end
+        if Player.Character then
+            local tool = Player.Character:FindFirstChild("Cure")
+            if tool then tool.Parent = backpack end
+        end
+        task.wait(0.2)
+        if cure then
+            game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("AddIngredient"):FireServer(cure.Name)
+        end
+    end)
+end)
 
 -- ===== ВКЛАДКА TELEPORT =====
 local tTeleport = CreateTab("Teleport")
