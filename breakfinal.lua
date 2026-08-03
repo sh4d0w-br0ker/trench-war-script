@@ -950,6 +950,28 @@ pieHealBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- BasementSpam Toggle
+local unlockDoorEnabled = false
+local unlockDoorBtn = CreateButton(tMisc, "BasementSpam: OFF", Color3.fromRGB(70, 70, 70), function() end)
+
+unlockDoorBtn.MouseButton1Click:Connect(function()
+    unlockDoorEnabled = not unlockDoorEnabled
+    if unlockDoorEnabled then
+        unlockDoorBtn.Text = "BasementSpam: ON"
+        unlockDoorBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+        task.spawn(function()
+            while unlockDoorEnabled do
+                game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("UnlockDoor"):FireServer()
+                task.wait(0.2)
+            end
+        end)
+    else
+        unlockDoorBtn.Text = "UnlockDoor: OFF"
+        unlockDoorBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end
+end)
+
+
 -- Kill Me Button
 CreateButton(tMisc, "Kill Me", Color3.fromRGB(180, 50, 50), function()
     local args = {-math.huge}
