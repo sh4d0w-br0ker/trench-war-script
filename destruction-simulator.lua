@@ -432,6 +432,7 @@ createBoostButton(boostTab, "🧱 BrickBoost Give", Color3.fromRGB(200, 150, 100
 createBoostButton(boostTab, "📈 XPBoost Give", Color3.fromRGB(150, 100, 200), "XPBoost", 900000, 9000)
 createBoostButton(boostTab, "⭐ Levels Give", Color3.fromRGB(100, 200, 100), "Levels", 300, 5)
 createBoostButton(boostTab, "🪙 CoinBoost Give", Color3.fromRGB(255, 200, 100), "CoinBoost", 9999999, 9999999)
+createBoostButton(boostTab, "🏃 ExtraSpeed Give", Color3.fromRGB(100, 255, 150), "ExtraSpeed", 999999, 999999)
 
 -- ==================== ВКЛАДКА TELEPORT ====================
 local teleportLocations = {
