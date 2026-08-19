@@ -1,4 +1,4 @@
--- Spynote Tsb-sploit (Multi-Ult-Logger, Sunset-All, Twin Fangs & Loadstring Invisible)
+-- Spynote Tsb-sploit (Multi-Ult-Logger, Sunset-All, Twin Fangs in Skill-Bring & Invisible Give)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -144,7 +144,7 @@ infoTab.Visible = true
 -- ==================== INFO ====================
 local infoLabel = Instance.new("TextLabel")
 infoLabel.Size = UDim2.new(1, 0, 1, 0)
-infoLabel.Text = "Tab-Info: information\nTab-Exploit: Exploit scripts\nTab-farm: farm Ult and more\nTab-Saitama: Saitama combos\nTab-Player: Multi-Ult-Logger & Invisible Give\nTab-Troll: Trolled Functions & Sunset-All\nTab-Esp: Player ESP highlights"
+infoLabel.Text = "Tab-Info: information\nTab-Exploit: Exploit scripts & Skill-Bring\nTab-farm: farm Ult and more\nTab-Saitama: Saitama combos\nTab-Player: Multi-Ult-Logger & Invisible Give\nTab-Troll: Trolled Functions & Sunset-All\nTab-Esp: Player ESP highlights"
 infoLabel.TextColor3 = Color3.new(1, 1, 1)
 infoLabel.TextSize = 14
 infoLabel.Font = Enum.Font.SourceSans
@@ -152,7 +152,7 @@ infoLabel.TextYAlignment = Enum.TextYAlignment.Top
 infoLabel.BackgroundTransparency = 1
 infoLabel.Parent = infoTab
 
--- ==================== EXPLOIT ====================
+-- ==================== EXPLOIT & SKILL-BRING ====================
 local exploitLabel = Instance.new("TextLabel")
 exploitLabel.Size = UDim2.new(1, 0, 0, 45)
 exploitLabel.Text = "worked: Garou, Brutal beat, trinity, Hudoshnik"
@@ -180,6 +180,19 @@ skillBringBtn.TextSize = 13
 skillBringBtn.BorderSizePixel = 0
 skillBringBtn.Parent = exploitTab
 Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
+
+skillBringBtn.MouseButton1Click:Connect(function()
+    isSkillBring = not isSkillBring
+    if isSkillBring then
+        skillBringBtn.Text = "Skill-Bring ON"
+        skillBringBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        skillBringBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    else
+        skillBringBtn.Text = "Skill-Bring OFF"
+        skillBringBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        skillBringBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+    end
+end)
 
 -- ==================== ESP TAB ====================
 local isEspEnabled = false
@@ -268,7 +281,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ==================== PLAYER TAB (Ult-Logger & Invisible Give) ====================
+-- ==================== PLAYER TAB ====================
 local isUltLogger = false
 local ultLoggerConnection = nil
 local notifiedPlayers = {}
@@ -366,7 +379,6 @@ ultLoggerBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Invisible Give (Loadstring)
 local invisibleGiveBtn = Instance.new("TextButton")
 invisibleGiveBtn.Size = UDim2.new(1, 0, 0, 32)
 invisibleGiveBtn.Text = "Invisible Give"
@@ -384,7 +396,7 @@ invisibleGiveBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ==================== TROLL (Sunset-All, Savage Tornado & Death-Blow) ====================
+-- ==================== TROLL TAB ====================
 local isSunsetAll = false
 local isSunsetRunning = false
 local isSavageTornadoAll = false
@@ -533,7 +545,7 @@ sunsetBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Communicate hook (Skill-Bring + Troll triggers)
+-- Communicate hook (Skill-Bring с добавленным Twin Fangs + Текстовые триггеры)
 task.spawn(function()
     pcall(function()
         local oldNamecall
@@ -544,11 +556,12 @@ task.spawn(function()
             if method == "FireServer" and tostring(self) == "Communicate" then
                 local data = args[1]
                 if type(data) == "table" then
+                    -- ТРИГГЕР ДЛЯ SKILL-BRING (включая Twin Fangs и консольный запуск)
                     if isSkillBring then
                         if data.Goal == "PingCheck" or data.Goal == "delete bv" then
                             return nil 
                         end
-                        if data.Goal == "Auto Use End" then
+                        if data.Goal == "Auto Use End" or data.Goal == "Console Move" then
                             local t = data.Tool
                             if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water" or t.Name == "Beatdown" or t.Name == "Head First" or t.Name == "Trinity Tear" or t.Name == "Twin Fangs") then
                                 task.spawn(function()
@@ -659,31 +672,7 @@ task.spawn(function()
     end)
 end)
 
-local skillBringBtn = Instance.new("TextButton")
-skillBringBtn.Size = UDim2.new(1, 0, 0, 32)
-skillBringBtn.Text = "Skill-Bring OFF"
-skillBringBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-skillBringBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-skillBringBtn.Font = Enum.Font.SourceSansBold
-skillBringBtn.TextSize = 13
-skillBringBtn.BorderSizePixel = 0
-skillBringBtn.Parent = exploitTab
-Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
-
-skillBringBtn.MouseButton1Click:Connect(function()
-    isSkillBring = not isSkillBring
-    if isSkillBring then
-        skillBringBtn.Text = "Skill-Bring ON"
-        skillBringBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
-        skillBringBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-    else
-        skillBringBtn.Text = "Skill-Bring OFF"
-        skillBringBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        skillBringBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-    end
-end)
-
--- ==================== FARM ====================
+-- ==================== FARM TAB ====================
 local isFarming = false
 local isAutoUlt = false
 local farmConnection = nil
@@ -809,7 +798,7 @@ ultBtnToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ==================== SAITAMA ====================
+-- ==================== SAITAMA TAB ====================
 local saitamaSkills = {
     {name = "Consecutive Punches", delay = 1.5},
     {name = "Uppercut", delay = 1.5},
@@ -1011,7 +1000,7 @@ saitamaDummyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ==================== УПРАВЛЕНИЕ ОКНОМ ====================
+-- ==================== WINDOW UI MANAGEMENT ====================
 local isMinimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -1051,4 +1040,4 @@ end)
 infoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 120)
 infoBtn.TextColor3 = Color3.new(1, 1, 1)
 
-print("Spynote Tsb-sploit fully loaded with Invisible Give & Twin Fangs!")
+print("Spynote Tsb-sploit fully loaded!")
