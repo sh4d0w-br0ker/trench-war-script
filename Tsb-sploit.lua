@@ -1,4 +1,4 @@
--- Spynote Tsb-sploit (Full Combo Version)
+-- Spynote Tsb-sploit (Full Version with Savage Tornado All)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -175,7 +175,6 @@ exploitLabel.TextYAlignment = Enum.TextYAlignment.Top
 exploitLabel.BackgroundTransparency = 1
 exploitLabel.Parent = exploitTab
 
--- Skill-Bring для Гароу
 local isSkillBring = false
 local TARGET_CFRAME = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)
 local WAIT_BEFORE = 1
@@ -193,6 +192,36 @@ skillBringBtn.BorderSizePixel = 0
 skillBringBtn.Parent = exploitTab
 Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
 
+-- ==================== TROLL (Savage Tornado All) ====================
+local isSavageTornadoAll = false
+local isTornadoRunning = false
+
+local savageBtn = Instance.new("TextButton")
+savageBtn.Size = UDim2.new(1, 0, 0, 32)
+savageBtn.Text = "Savage-Tornado-all OFF"
+savageBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+savageBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+savageBtn.Font = Enum.Font.SourceSansBold
+savageBtn.TextSize = 13
+savageBtn.BorderSizePixel = 0
+savageBtn.Parent = trollTab
+Instance.new("UICorner", savageBtn).CornerRadius = UDim.new(0, 4)
+
+savageBtn.MouseButton1Click:Connect(function()
+    isSavageTornadoAll = not isSavageTornadoAll
+    if isSavageTornadoAll then
+        savageBtn.Text = "Savage-Tornado-all ON"
+        savageBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        savageBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    else
+        savageBtn.Text = "Savage-Tornado-all OFF"
+        savageBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        savageBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        isTornadoRunning = false
+    end
+end)
+
+-- Общий хук метаметода для перехвата событий Communicate
 task.spawn(function()
     pcall(function()
         local oldNamecall
@@ -200,36 +229,71 @@ task.spawn(function()
             local args = {...}
             local method = getnamecallmethod()
             
-            if isSkillBring and method == "FireServer" and tostring(self) == "Communicate" then
+            if method == "FireServer" and tostring(self) == "Communicate" then
                 local data = args[1]
-                if type(data) == "table" and (data.Goal == "PingCheck" or data.Goal == "delete bv") then
-                    return nil 
-                end
+                if type(data) == "table" then
+                    -- Логика Skill-Bring
+                    if isSkillBring then
+                        if data.Goal == "PingCheck" or data.Goal == "delete bv" then
+                            return nil 
+                        end
+                        if data.Goal == "Auto Use End" then
+                            local t = data.Tool
+                            if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water") then
+                                task.spawn(function()
+                                    local char = LocalPlayer.Character
+                                    local root = char and char:FindFirstChild("HumanoidRootPart")
+                                    if root then
+                                        local oldCF = root.CFrame
+                                        task.wait(WAIT_BEFORE)
+                                        
+                                        local p = Instance.new("Part", workspace)
+                                        p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
+                                        p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
+                                        p.Anchored = true
+                                        p.CanCollide = true
+                                        p.Transparency = 0.5
+                                        p.Color = Color3.fromRGB(255, 0, 0)
 
-                if type(data) == "table" and data.Goal == "Auto Use End" then
-                    local t = data.Tool
-                    if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water") then
-                        task.spawn(function()
-                            local char = LocalPlayer.Character
-                            local root = char and char:FindFirstChild("HumanoidRootPart")
-                            if root then
-                                local oldCF = root.CFrame
-                                task.wait(WAIT_BEFORE)
-                                
-                                local p = Instance.new("Part", workspace)
-                                p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
-                                p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
-                                p.Anchored = true
-                                p.CanCollide = true
-                                p.Transparency = 0.5
-                                p.Color = Color3.fromRGB(255, 0, 0)
-
-                                root.CFrame = TARGET_CFRAME
-                                task.wait(WAIT_THERE)
-                                root.CFrame = oldCF
-                                p:Destroy()
+                                        root.CFrame = TARGET_CFRAME
+                                        task.wait(WAIT_THERE)
+                                        root.CFrame = oldCF
+                                        p:Destroy()
+                                    end
+                                end)
                             end
-                        end)
+                        end
+                    end
+
+                    -- Логика Savage-Tornado-all
+                    if isSavageTornadoAll and not isTornadoRunning then
+                        local t = data.Tool
+                        if t and t.Name == "Savage Tornado" then
+                            isTornadoRunning = true
+                            task.spawn(function()
+                                local char = LocalPlayer.Character
+                                local root = char and char:FindFirstChild("HumanoidRootPart")
+                                
+                                if root then
+                                    local oldCF = root.CFrame
+                                    
+                                    for _, plr in ipairs(Players:GetPlayers()) do
+                                        if plr ~= LocalPlayer and plr.Character then
+                                            local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+                                            if targetRoot then
+                                                root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 2)
+                                                task.wait(0.7)
+                                            end
+                                        end
+                                    end
+                                    
+                                    root.CFrame = oldCF
+                                end
+                                
+                                task.wait(0.5)
+                                isTornadoRunning = false
+                            end)
+                        end
                     end
                 end
             end
@@ -250,17 +314,6 @@ skillBringBtn.MouseButton1Click:Connect(function()
         skillBringBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
     end
 end)
-
--- ==================== TROLL ====================
-local trollLabel = Instance.new("TextLabel")
-trollLabel.Size = UDim2.new(1, 0, 1, 0)
-trollLabel.Text = "Come..."
-trollLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-trollLabel.TextSize = 24
-trollLabel.Font = Enum.Font.SourceSans
-trollLabel.TextYAlignment = Enum.TextYAlignment.Top
-trollLabel.BackgroundTransparency = 1
-trollLabel.Parent = trollTab
 
 -- ==================== FARM ====================
 local isFarming = false
@@ -655,6 +708,7 @@ CloseButton.MouseButton1Click:Connect(function()
     isSaitamaTarget = false
     isSaitamaDummy = false
     isSkillBring = false
+    isSavageTornadoAll = false
     if farmConnection then farmConnection:Disconnect() end
     if ultConnection then ultConnection:Disconnect() end
     if saitamaTargetConnection then saitamaTargetConnection:Disconnect() end
@@ -665,4 +719,4 @@ end)
 infoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 120)
 infoBtn.TextColor3 = Color3.new(1, 1, 1)
 
-print("Spynote Tsb-sploit loaded!")
+print("Spynote Tsb-sploit loaded successfully!")
