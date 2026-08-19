@@ -23,7 +23,7 @@ local LeftButtonContainer = Instance.new("Frame")
 local LeftButtonList = Instance.new("UIListLayout")
 local RightContent = Instance.new("Frame")
 local ScrollContainer = Instance.new("ScrollingFrame")
-local ToggleGuiButton = Instance.new("TextButton") -- Кнопка для показа GUI
+local ToggleGuiButton = Instance.new("TextButton")
 
 ScreenGui.Name = "SpynoteTsb"
 ScreenGui.Parent = CoreGui
@@ -53,7 +53,6 @@ ToggleGuiButton.TextSize = 14
 ToggleGuiButton.Draggable = true
 ToggleGuiButton.Active = true
 Instance.new("UICorner", ToggleGuiButton).CornerRadius = UDim.new(0, 6)
-
 ToggleGuiButton.Visible = false
 
 TitleLabel.Name = "TitleLabel"
