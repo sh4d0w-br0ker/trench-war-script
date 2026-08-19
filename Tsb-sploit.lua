@@ -1,4 +1,4 @@
--- Spynote Tsb-sploit (Full Version with Savage Tornado All)
+-- Spynote Tsb-sploit (Full Version with Savage Tornado Delay & Death-Blow Hit)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -192,9 +192,104 @@ skillBringBtn.BorderSizePixel = 0
 skillBringBtn.Parent = exploitTab
 Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
 
--- ==================== TROLL (Savage Tornado All) ====================
+-- ==================== TROLL (Savage Tornado All & Death-Blow Hit) ====================
 local isSavageTornadoAll = false
 local isTornadoRunning = false
+
+local isDeathBlowHit = false
+local isDeathBlowRunning = false
+local selectedDeathBlowTarget = nil
+
+-- Элементы для Death-Blow Hit
+local deathBlowPlayerLabel = Instance.new("TextLabel")
+deathBlowPlayerLabel.Size = UDim2.new(1, 0, 0, 20)
+deathBlowPlayerLabel.Text = "Player: None"
+deathBlowPlayerLabel.TextColor3 = Color3.new(1, 1, 1)
+deathBlowPlayerLabel.TextSize = 13
+deathBlowPlayerLabel.Font = Enum.Font.SourceSans
+deathBlowPlayerLabel.BackgroundTransparency = 1
+deathBlowPlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
+deathBlowPlayerLabel.Parent = trollTab
+
+local selectDeathBlowPlayerBtn = Instance.new("TextButton")
+selectDeathBlowPlayerBtn.Size = UDim2.new(1, 0, 0, 30)
+selectDeathBlowPlayerBtn.Text = "Select Target"
+selectDeathBlowPlayerBtn.TextColor3 = Color3.new(1, 1, 1)
+selectDeathBlowPlayerBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+selectDeathBlowPlayerBtn.Font = Enum.Font.SourceSansBold
+selectDeathBlowPlayerBtn.TextSize = 13
+selectDeathBlowPlayerBtn.BorderSizePixel = 0
+selectDeathBlowPlayerBtn.Parent = trollTab
+Instance.new("UICorner", selectDeathBlowPlayerBtn).CornerRadius = UDim.new(0, 4)
+
+selectDeathBlowPlayerBtn.MouseButton1Click:Connect(function()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 300)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -150)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    frame.Parent = ScreenGui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+    local close = Instance.new("TextButton")
+    close.Size = UDim2.new(0, 30, 0, 30)
+    close.Position = UDim2.new(1, -30, 0, 0)
+    close.Text = "X"
+    close.TextColor3 = Color3.fromRGB(255, 80, 80)
+    close.BackgroundTransparency = 1
+    close.Parent = frame
+    close.MouseButton1Click:Connect(function() frame:Destroy() end)
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -10, 1, -40)
+    scroll.Position = UDim2.new(0, 5, 0, 35)
+    scroll.BackgroundTransparency = 1
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.Parent = frame
+    Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 3)
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            btn.Text = plr.Name
+            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Parent = scroll
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+            btn.MouseButton1Click:Connect(function()
+                selectedDeathBlowTarget = plr
+                deathBlowPlayerLabel.Text = "Player: " .. plr.Name
+                frame:Destroy()
+            end)
+        end
+    end
+end)
+
+local deathBlowBtn = Instance.new("TextButton")
+deathBlowBtn.Size = UDim2.new(1, 0, 0, 32)
+deathBlowBtn.Text = "Death-Blow Hit OFF"
+deathBlowBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+deathBlowBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+deathBlowBtn.Font = Enum.Font.SourceSansBold
+deathBlowBtn.TextSize = 13
+deathBlowBtn.BorderSizePixel = 0
+deathBlowBtn.Parent = trollTab
+Instance.new("UICorner", deathBlowBtn).CornerRadius = UDim.new(0, 4)
+
+deathBlowBtn.MouseButton1Click:Connect(function()
+    isDeathBlowHit = not isDeathBlowHit
+    if isDeathBlowHit then
+        deathBlowBtn.Text = "Death-Blow Hit ON"
+        deathBlowBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        deathBlowBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    else
+        deathBlowBtn.Text = "Death-Blow Hit OFF"
+        deathBlowBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        deathBlowBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        isDeathBlowRunning = false
+    end
+end)
 
 local savageBtn = Instance.new("TextButton")
 savageBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -265,12 +360,13 @@ task.spawn(function()
                         end
                     end
 
-                    -- Логика Savage-Tornado-all
+                    -- Логика Savage-Tornado-all (с задержкой 1.2 сек перед стартом)
                     if isSavageTornadoAll and not isTornadoRunning then
                         local t = data.Tool
                         if t and t.Name == "Savage Tornado" then
                             isTornadoRunning = true
                             task.spawn(function()
+                                task.wait(1.2) -- Ждем 1.2 сек пока скил прогрузится
                                 local char = LocalPlayer.Character
                                 local root = char and char:FindFirstChild("HumanoidRootPart")
                                 
@@ -292,6 +388,29 @@ task.spawn(function()
                                 
                                 task.wait(0.5)
                                 isTornadoRunning = false
+                            end)
+                        end
+                    end
+
+                    -- Логика Death-Blow Hit
+                    if isDeathBlowHit and not isDeathBlowRunning and selectedDeathBlowTarget then
+                        local t = data.Tool
+                        if t and t.Name == "Death Blow" then
+                            isDeathBlowRunning = true
+                            task.spawn(function()
+                                task.wait(2.0) -- Ждем 2 секунды после евента
+                                local char = LocalPlayer.Character
+                                local root = char and char:FindFirstChild("HumanoidRootPart")
+                                
+                                if root and selectedDeathBlowTarget.Character then
+                                    local targetRoot = selectedDeathBlowTarget.Character:FindFirstChild("HumanoidRootPart")
+                                    if targetRoot then
+                                        root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 2) -- Резкий телепорт к цели
+                                    end
+                                end
+                                
+                                task.wait(0.5)
+                                isDeathBlowRunning = false
                             end)
                         end
                     end
@@ -709,6 +828,7 @@ CloseButton.MouseButton1Click:Connect(function()
     isSaitamaDummy = false
     isSkillBring = false
     isSavageTornadoAll = false
+    isDeathBlowHit = false
     if farmConnection then farmConnection:Disconnect() end
     if ultConnection then ultConnection:Disconnect() end
     if saitamaTargetConnection then saitamaTargetConnection:Disconnect() end
