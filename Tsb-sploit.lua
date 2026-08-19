@@ -1,4 +1,4 @@
--- Spynote Tsb-sploit (Full Version with Ult-Logger, ESP & New Skill-Bring Triggers)
+-- Spynote Tsb-sploit (Updated with ESP Fix, Player Tab, Ult-Logger & Arena Invisible)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -111,7 +111,7 @@ ScrollContainer.BorderSizePixel = 0
 -- ==================== ФУНКЦИЯ СОЗДАНИЯ ВКЛАДОК ====================
 local function createTab(tabName, displayName)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 28)
+    btn.Size = UDim2.new(1, 0, 0, 26)
     btn.Text = displayName or tabName
     btn.TextColor3 = Color3.new(1, 1, 1)
     btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -149,6 +149,7 @@ local infoBtn, infoTab = createTab("Info", "Info")
 local exploitBtn, exploitTab = createTab("Exploit", "Exploit")
 local farmBtn, farmTab = createTab("Farm", "Farm")
 local saitamaBtn, saitamaTab = createTab("Saitama", "Saitama")
+local playerBtn, playerTab = createTab("Player", "Player")
 local trollBtn, trollTab = createTab("Troll", "Troll")
 local espBtn, espTab = createTab("Esp", "ESP")
 
@@ -157,9 +158,9 @@ infoTab.Visible = true
 -- ==================== INFO ====================
 local infoLabel = Instance.new("TextLabel")
 infoLabel.Size = UDim2.new(1, 0, 1, 0)
-infoLabel.Text = "Tab-Info: information\nTab-Exploit: Exploit scripts\nTab-farm: farm Ult and more\nTab-Saitama: Saitama combos & Ult-Logger\nTab-Troll: Trolled Functions\nTab-Esp: Player ESP highlights"
+infoLabel.Text = "Tab-Info: information\nTab-Exploit: Exploit scripts\nTab-farm: farm Ult and more\nTab-Saitama: Saitama combos\nTab-Player: Ult-Logger & Arena Invisible\nTab-Troll: Trolled Functions\nTab-Esp: Player ESP highlights"
 infoLabel.TextColor3 = Color3.new(1, 1, 1)
-infoLabel.TextSize = 16
+infoLabel.TextSize = 14
 infoLabel.Font = Enum.Font.SourceSans
 infoLabel.TextYAlignment = Enum.TextYAlignment.Top
 infoLabel.BackgroundTransparency = 1
@@ -194,9 +195,10 @@ skillBringBtn.BorderSizePixel = 0
 skillBringBtn.Parent = exploitTab
 Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
 
--- ==================== ESP TAB ====================
+-- ==================== ESP TAB (С исправленным удалением надписей) ====================
 local isEspEnabled = false
 local espHighlights = {}
+local espBillboards = {}
 
 local espToggleBtn = Instance.new("TextButton")
 espToggleBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -214,6 +216,11 @@ local function clearEsp()
         if item then item:Destroy() end
     end
     espHighlights = {}
+    
+    for _, bill in pairs(espBillboards) do
+        if bill then bill:Destroy() end
+    end
+    espBillboards = {}
 end
 
 espToggleBtn.MouseButton1Click:Connect(function()
@@ -269,6 +276,7 @@ RunService.Heartbeat:Connect(function()
                 txt.TextStrokeTransparency = 0
                 txt.Parent = bill
                 bill.Parent = root
+                table.insert(espBillboards, bill)
             end
             
             local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -277,6 +285,186 @@ RunService.Heartbeat:Connect(function()
                 bill.Distance.Text = "Studs: " .. dist
             end
         end
+    end
+end)
+
+-- ==================== PLAYER TAB (Ult-Logger & Arena Invisible) ====================
+local isUltLogger = false
+local ultLoggerConnection = nil
+local notifiedPlayers = {}
+
+local function showUltNotification(msg)
+    local alert = Instance.new("TextLabel")
+    alert.Size = UDim2.new(0, 320, 0, 35)
+    alert.Position = UDim2.new(0.5, -160, 0, 10)
+    alert.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+    alert.TextColor3 = Color3.fromRGB(255, 255, 255)
+    alert.TextSize = 13
+    alert.Font = Enum.Font.SourceSansBold
+    alert.Text = msg
+    alert.ZIndex = 10
+    alert.Parent = ScreenGui
+    Instance.new("UICorner", alert).CornerRadius = UDim.new(0, 6)
+    
+    task.delay(3, function()
+        if alert then alert:Destroy() end
+    end)
+end
+
+local function startUltLogger()
+    if ultLoggerConnection then ultLoggerConnection:Disconnect() end
+    notifiedPlayers = {}
+    
+    ultLoggerConnection = RunService.Heartbeat:Connect(function()
+        if not isUltLogger then
+            ultLoggerConnection:Disconnect()
+            ultLoggerConnection = nil
+            return
+        end
+        
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                local bp = plr:FindFirstChild("Backpack")
+                local char = plr.Character
+                local hasUlt = false
+                
+                local function checkContainer(container)
+                    if container then
+                        if container:FindFirstChild("Table Flip") or 
+                           container:FindFirstChild("Serious Punch") or 
+                           container:FindFirstChild("Omni Directional Punch") or 
+                           container:FindFirstChild("Death Counter") then
+                            hasUlt = true
+                        end
+                    end
+                end
+                
+                checkContainer(bp)
+                checkContainer(char)
+                
+                if hasUlt then
+                    if not notifiedPlayers[plr] then
+                        notifiedPlayers[plr] = true
+                        showUltNotification("<" .. plr.Name .. "> Saitama Ultimate Detected")
+                    end
+                else
+                    notifiedPlayers[plr] = nil
+                end
+            end
+        end
+    end)
+end
+
+local ultLoggerBtn = Instance.new("TextButton")
+ultLoggerBtn.Size = UDim2.new(1, 0, 0, 32)
+ultLoggerBtn.Text = "Ult-Logger OFF"
+ultLoggerBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ultLoggerBtn.Font = Enum.Font.SourceSansBold
+ultLoggerBtn.TextSize = 13
+ultLoggerBtn.BorderSizePixel = 0
+ultLoggerBtn.Parent = playerTab
+Instance.new("UICorner", ultLoggerBtn).CornerRadius = UDim.new(0, 4)
+
+ultLoggerBtn.MouseButton1Click:Connect(function()
+    isUltLogger = not isUltLogger
+    if isUltLogger then
+        ultLoggerBtn.Text = "Ult-Logger ON"
+        ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        ultLoggerBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        startUltLogger()
+    else
+        ultLoggerBtn.Text = "Ult-Logger OFF"
+        ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        ultLoggerBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        if ultLoggerConnection then ultLoggerConnection:Disconnect() ultLoggerConnection = nil end
+    end
+end)
+
+-- Логика Invisible для Player вкладки
+local isArenaInvisible = false
+local invisibleConnection = nil
+local charParts = {}
+local function setupInvisibleChar()
+    local char = LocalPlayer.Character
+    if not char then return end
+    charParts = {}
+    for _, desc in pairs(char:GetDescendants()) do
+        if desc:IsA("BasePart") then
+            table.insert(charParts, desc)
+        end
+    end
+end
+
+local invisibleBtn = Instance.new("TextButton")
+invisibleBtn.Size = UDim2.new(1, 0, 0, 32)
+invisibleBtn.Text = "Invisible OFF"
+invisibleBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+invisibleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+invisibleBtn.Font = Enum.Font.SourceSansBold
+invisibleBtn.TextSize = 13
+invisibleBtn.BorderSizePixel = 0
+invisibleBtn.Parent = playerTab
+Instance.new("UICorner", invisibleBtn).CornerRadius = UDim.new(0, 4)
+
+local invisibleWarning = Instance.new("TextLabel")
+invisibleWarning.Size = UDim2.new(1, 0, 0, 20)
+invisibleWarning.Text = "Warning: Using Only Arena"
+invisibleWarning.TextColor3 = Color3.fromRGB(255, 215, 0)
+invisibleWarning.TextSize = 12
+invisibleWarning.Font = Enum.Font.SourceSansBold
+invisibleWarning.BackgroundTransparency = 1
+invisibleWarning.TextXAlignment = Enum.TextXAlignment.Center
+invisibleWarning.Parent = playerTab
+
+invisibleBtn.MouseButton1Click:Connect(function()
+    isArenaInvisible = not isArenaInvisible
+    if isArenaInvisible then
+        invisibleBtn.Text = "Invisible ON"
+        invisibleBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        invisibleBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        
+        setupInvisibleChar()
+        if invisibleConnection then invisibleConnection:Disconnect() end
+        invisibleConnection = RunService.Heartbeat:Connect(function()
+            if not isArenaInvisible then return end
+            local char = LocalPlayer.Character
+            if not char then return end
+            local humanoid = char:FindFirstChild("Humanoid")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrp then
+                local origCF = hrp.CFrame
+                local origOffset = humanoid.CameraOffset
+                
+                local downCF = origCF * CFrame.new(0, -200000, 0)
+                hrp.CFrame = downCF
+                humanoid.CameraOffset = downCF:ToObjectSpace(CFrame.new(origCF.Position)).Position
+                
+                RunService.RenderStepped:Wait()
+                
+                hrp.CFrame = origCF
+                humanoid.CameraOffset = origOffset
+            end
+        end)
+    else
+        invisibleBtn.Text = "Invisible OFF"
+        invisibleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        invisibleBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        if invisibleConnection then
+            invisibleConnection:Disconnect()
+            invisibleConnection = nil
+        end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    isArenaInvisible = false
+    invisibleBtn.Text = "Invisible OFF"
+    invisibleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    invisibleBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+    if invisibleConnection then
+        invisibleConnection:Disconnect()
+        invisibleConnection = nil
     end
 end)
 
@@ -403,7 +591,7 @@ savageBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Общий хук метаметода для перехвата событий Communicate (включая новые триггеры Skill-Bring)
+-- Общий хук метаметода для перехвата событий Communicate
 task.spawn(function()
     pcall(function()
         local oldNamecall
@@ -414,7 +602,6 @@ task.spawn(function()
             if method == "FireServer" and tostring(self) == "Communicate" then
                 local data = args[1]
                 if type(data) == "table" then
-                    -- Логика Skill-Bring (с новыми триггерами: Beatdown, Head First, Trinity Tear)
                     if isSkillBring then
                         if data.Goal == "PingCheck" or data.Goal == "delete bv" then
                             return nil 
@@ -447,7 +634,6 @@ task.spawn(function()
                         end
                     end
 
-                    -- Логика Savage-Tornado-all
                     if isSavageTornadoAll and not isTornadoRunning then
                         local t = data.Tool
                         if t and t.Name == "Savage Tornado" then
@@ -476,8 +662,7 @@ task.spawn(function()
                         end
                     end
 
-                    -- Логика Death counter
-                                if isDeathBlowHit and not isDeathBlowRunning and selectedDeathBlowTarget then
+                    if isDeathBlowHit and not isDeathBlowRunning and selectedDeathBlowTarget then
                         local t = data.Tool
                         if t and t.Name == "Death Blow" then
                             isDeathBlowRunning = true
@@ -662,7 +847,7 @@ ultBtnToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ==================== SAITAMA (Combos & Ult-Logger) ====================
+-- ==================== SAITAMA (Combos Only) ====================
 local saitamaSkills = {
     {name = "Consecutive Punches", delay = 1.5},
     {name = "Uppercut", delay = 1.5},
@@ -675,99 +860,6 @@ local isSaitamaTarget = false
 local isSaitamaDummy = false
 local saitamaTargetConnection = nil
 local saitamaDummyConnection = nil
-
--- Логика Ult-Logger
-local isUltLogger = false
-local ultLoggerConnection = nil
-local notifiedPlayers = {}
-
-local function showUltNotification(msg)
-    local alert = Instance.new("TextLabel")
-    alert.Size = UDim2.new(0, 320, 0, 35)
-    alert.Position = UDim2.new(0.5, -160, 0, 10)
-    alert.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
-    alert.TextColor3 = Color3.fromRGB(255, 255, 255)
-    alert.TextSize = 13
-    alert.Font = Enum.Font.SourceSansBold
-    alert.Text = msg
-    alert.ZIndex = 10
-    alert.Parent = ScreenGui
-    Instance.new("UICorner", alert).CornerRadius = UDim.new(0, 6)
-    
-    task.delay(3, function()
-        if alert then alert:Destroy() end
-    end)
-end
-
-local function startUltLogger()
-    if ultLoggerConnection then ultLoggerConnection:Disconnect() end
-    notifiedPlayers = {}
-    
-    ultLoggerConnection = RunService.Heartbeat:Connect(function()
-        if not isUltLogger then
-            ultLoggerConnection:Disconnect()
-            ultLoggerConnection = nil
-            return
-        end
-        
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer then
-                local bp = plr:FindFirstChild("Backpack")
-                local char = plr.Character
-                local hasUlt = false
-                
-                local function checkContainer(container)
-                    if container then
-                        if container:FindFirstChild("Table Flip") or 
-                           container:FindFirstChild("Serious Punch") or 
-                           container:FindFirstChild("Omni Directional Punch") or 
-                           container:FindFirstChild("Death Counter") then
-                            hasUlt = true
-                        end
-                    end
-                end
-                
-                checkContainer(bp)
-                checkContainer(char)
-                
-                if hasUlt then
-                    if not notifiedPlayers[plr] then
-                        notifiedPlayers[plr] = true
-                        showUltNotification("<" .. plr.Name .. "> Saitama Ultimate Detected")
-                    end
-                else
-                    notifiedPlayers[plr] = nil
-                end
-            end
-        end
-    end)
-end
-
-local ultLoggerBtn = Instance.new("TextButton")
-ultLoggerBtn.Size = UDim2.new(1, 0, 0, 32)
-ultLoggerBtn.Text = "Ult-Logger OFF"
-ultLoggerBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-ultLoggerBtn.Font = Enum.Font.SourceSansBold
-ultLoggerBtn.TextSize = 13
-ultLoggerBtn.BorderSizePixel = 0
-ultLoggerBtn.Parent = saitamaTab
-Instance.new("UICorner", ultLoggerBtn).CornerRadius = UDim.new(0, 4)
-
-ultLoggerBtn.MouseButton1Click:Connect(function()
-    isUltLogger = not isUltLogger
-    if isUltLogger then
-        ultLoggerBtn.Text = "Ult-Logger ON"
-        ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
-        ultLoggerBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-        startUltLogger()
-    else
-        ultLoggerBtn.Text = "Ult-Logger OFF"
-        ultLoggerBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        ultLoggerBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-        if ultLoggerConnection then ultLoggerConnection:Disconnect() ultLoggerConnection = nil end
-    end
-end)
 
 local function getTargetPosition(target)
     if not target then return nil end
@@ -1006,6 +1098,7 @@ CloseButton.MouseButton1Click:Connect(function()
     isSavageTornadoAll = false
     isDeathBlowHit = false
     isUltLogger = false
+    isArenaInvisible = false
     isEspEnabled = false
     clearEsp()
     if farmConnection then farmConnection:Disconnect() end
@@ -1013,10 +1106,11 @@ CloseButton.MouseButton1Click:Connect(function()
     if saitamaTargetConnection then saitamaTargetConnection:Disconnect() end
     if saitamaDummyConnection then saitamaDummyConnection:Disconnect() end
     if ultLoggerConnection then ultLoggerConnection:Disconnect() end
+    if invisibleConnection then invisibleConnection:Disconnect() end
     ScreenGui:Destroy()
 end)
 
 infoBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 120)
 infoBtn.TextColor3 = Color3.new(1, 1, 1)
 
-print("Spynote Tsb-sploit loaded successfully with ESP, Ult-Logger & New Triggers!")
+print("Spynote Tsb-sploit loaded successfully with ESP fix, Player tab (Ult-Logger & Invisible)!")
