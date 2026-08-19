@@ -1,8 +1,9 @@
--- Spynote Tsb-sploit (Fixed)
+-- Spynote Tsb-sploit (Full Combo Version)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Удаляем старый GUI
 if CoreGui:FindFirstChild("SpynoteTsb") then
@@ -12,7 +13,6 @@ end
 -- GUI Создание
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
-local TopBar = Instance.new("Frame")
 local TitleLabel = Instance.new("TextLabel")
 local MinimizeButton = Instance.new("TextButton")
 local CloseButton = Instance.new("TextButton")
@@ -21,7 +21,7 @@ local RightPanel = Instance.new("Frame")
 local LeftButtonContainer = Instance.new("Frame")
 local LeftButtonList = Instance.new("UIListLayout")
 local RightContent = Instance.new("Frame")
-local ToggleGuiButton = Instance.new("TextButton")
+local ScrollContainer = Instance.new("ScrollingFrame")
 
 ScreenGui.Name = "SpynoteTsb"
 ScreenGui.Parent = CoreGui
@@ -31,71 +31,44 @@ MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
-MainFrame.Size = UDim2.new(0, 400, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 400, 0, 360)
 MainFrame.Active = true
 MainFrame.Draggable = true
-MainFrame.ClipsDescendants = false -- Исправлено, чтобы не резало элементы
-
--- Кнопка для показа GUI (слева внизу)
-ToggleGuiButton.Name = "ToggleGuiButton"
-ToggleGuiButton.Parent = ScreenGui
-ToggleGuiButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleGuiButton.BorderSizePixel = 0
-ToggleGuiButton.Position = UDim2.new(0, 10, 1, -50)
-ToggleGuiButton.Size = UDim2.new(0, 60, 0, 30)
-ToggleGuiButton.Font = Enum.Font.SourceSansBold
-ToggleGuiButton.Text = "TSB"
-ToggleGuiButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleGuiButton.TextSize = 14
-ToggleGuiButton.Draggable = true
-ToggleGuiButton.Active = true
-ToggleGuiButton.Visible = false
-Instance.new("UICorner", ToggleGuiButton).CornerRadius = UDim.new(0, 6)
-
--- Верхняя панель (Шапка)
-TopBar.Name = "TopBar"
-TopBar.Parent = MainFrame
-TopBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-TopBar.BorderSizePixel = 0
-TopBar.Size = UDim2.new(1, 0, 0, 30)
-TopBar.ZIndex = 5
+MainFrame.ClipsDescendants = true
 
 TitleLabel.Name = "TitleLabel"
-TitleLabel.Parent = TopBar
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Size = UDim2.new(1, -60, 1, 0)
-TitleLabel.Position = UDim2.new(0, 5, 0, 0)
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TitleLabel.BorderSizePixel = 0
+TitleLabel.Size = UDim2.new(0, 340, 0, 30)
 TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.Text = "Spynote Tsb-sploit"
+TitleLabel.Text = " Spynote Tsb-sploit"
 TitleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 TitleLabel.TextSize = 15
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.ZIndex = 6
 
 MinimizeButton.Name = "MinimizeButton"
-MinimizeButton.Parent = TopBar
+MinimizeButton.Parent = MainFrame
 MinimizeButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MinimizeButton.BorderSizePixel = 0
-MinimizeButton.Position = UDim2.new(1, -60, 0, 0)
+MinimizeButton.Position = UDim2.new(0, 340, 0, 0)
 MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
 MinimizeButton.Font = Enum.Font.SourceSansBold
 MinimizeButton.Text = "<"
 MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinimizeButton.TextSize = 16
-MinimizeButton.ZIndex = 6
 
 CloseButton.Name = "CloseButton"
-CloseButton.Parent = TopBar
+CloseButton.Parent = MainFrame
 CloseButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 CloseButton.BorderSizePixel = 0
-CloseButton.Position = UDim2.new(1, -30, 0, 0)
+CloseButton.Position = UDim2.new(0, 370, 0, 0)
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Font = Enum.Font.SourceSansBold
 CloseButton.Text = "×"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.TextSize = 16
-CloseButton.ZIndex = 6
 
 LeftPanel.Name = "LeftPanel"
 LeftPanel.Parent = MainFrame
@@ -103,7 +76,6 @@ LeftPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 LeftPanel.BorderSizePixel = 0
 LeftPanel.Size = UDim2.new(0, 80, 1, -30)
 LeftPanel.Position = UDim2.new(0, 0, 0, 30)
-LeftPanel.ZIndex = 2
 
 RightPanel.Name = "RightPanel"
 RightPanel.Parent = MainFrame
@@ -111,14 +83,12 @@ RightPanel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 RightPanel.BorderSizePixel = 0
 RightPanel.Size = UDim2.new(1, -85, 1, -35)
 RightPanel.Position = UDim2.new(0, 85, 0, 35)
-RightPanel.ZIndex = 2
 
 LeftButtonContainer.Name = "LeftButtonContainer"
 LeftButtonContainer.Parent = LeftPanel
 LeftButtonContainer.BackgroundTransparency = 1
 LeftButtonContainer.Size = UDim2.new(1, -8, 1, -8)
 LeftButtonContainer.Position = UDim2.new(0, 4, 0, 4)
-LeftButtonContainer.ZIndex = 3
 
 LeftButtonList.Name = "LeftButtonList"
 LeftButtonList.Parent = LeftButtonContainer
@@ -129,7 +99,14 @@ RightContent.Name = "RightContent"
 RightContent.Parent = RightPanel
 RightContent.BackgroundTransparency = 1
 RightContent.Size = UDim2.new(1, 0, 1, 0)
-RightContent.ZIndex = 2
+
+ScrollContainer.Name = "ScrollContainer"
+ScrollContainer.Parent = RightContent
+ScrollContainer.Size = UDim2.new(1, 0, 1, 0)
+ScrollContainer.BackgroundTransparency = 1
+ScrollContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollContainer.ScrollBarThickness = 6
+ScrollContainer.BorderSizePixel = 0
 
 -- ==================== ФУНКЦИЯ СОЗДАНИЯ ВКЛАДОК ====================
 local function createTab(tabName, displayName)
@@ -141,10 +118,9 @@ local function createTab(tabName, displayName)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 11
     btn.BorderSizePixel = 0
-    btn.ZIndex = 4
     btn.Parent = LeftButtonContainer
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-
+    
     local content = Instance.new("ScrollingFrame")
     content.Size = UDim2.new(1, -6, 1, -6)
     content.Position = UDim2.new(0, 3, 0, 3)
@@ -153,10 +129,9 @@ local function createTab(tabName, displayName)
     content.ScrollBarThickness = 3
     content.CanvasSize = UDim2.new(0, 0, 0, 0)
     content.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    content.ZIndex = 3
     content.Parent = RightPanel
     Instance.new("UIListLayout", content).Padding = UDim.new(0, 4)
-
+    
     btn.MouseButton1Click:Connect(function()
         for _, child in pairs(RightPanel:GetChildren()) do
             if child:IsA("ScrollingFrame") then
@@ -165,7 +140,7 @@ local function createTab(tabName, displayName)
         end
         content.Visible = true
     end)
-
+    
     return btn, content
 end
 
@@ -187,22 +162,20 @@ infoLabel.TextSize = 16
 infoLabel.Font = Enum.Font.SourceSans
 infoLabel.TextYAlignment = Enum.TextYAlignment.Top
 infoLabel.BackgroundTransparency = 1
-infoLabel.ZIndex = 3
 infoLabel.Parent = infoTab
 
 -- ==================== EXPLOIT ====================
 local exploitLabel = Instance.new("TextLabel")
-exploitLabel.Size = UDim2.new(1, 0, 1, 0)
+exploitLabel.Size = UDim2.new(1, 0, 0, 20)
 exploitLabel.Text = "Worked: Garou"
 exploitLabel.TextColor3 = Color3.new(1, 1, 1)
 exploitLabel.TextSize = 14
 exploitLabel.Font = Enum.Font.SourceSans
 exploitLabel.TextYAlignment = Enum.TextYAlignment.Top
 exploitLabel.BackgroundTransparency = 1
-exploitLabel.ZIndex = 3
 exploitLabel.Parent = exploitTab
 
--- Skill-Bring
+-- Skill-Bring для Гароу
 local isSkillBring = false
 local TARGET_CFRAME = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)
 local WAIT_BEFORE = 1
@@ -217,54 +190,53 @@ skillBringBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 skillBringBtn.Font = Enum.Font.SourceSansBold
 skillBringBtn.TextSize = 13
 skillBringBtn.BorderSizePixel = 0
-skillBringBtn.ZIndex = 3
 skillBringBtn.Parent = exploitTab
 Instance.new("UICorner", skillBringBtn).CornerRadius = UDim.new(0, 4)
 
-local function setupSkillHook()
-    local oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-        local args = {...}
-        local method = getnamecallmethod()
-        
-        if isSkillBring and method == "FireServer" and tostring(self) == "Communicate" then
-            local data = args[1]
+task.spawn(function()
+    pcall(function()
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local args = {...}
+            local method = getnamecallmethod()
             
-            if type(data) == "table" and (data.Goal == "PingCheck" or data.Goal == "delete bv") then
-                return nil 
-            end
+            if isSkillBring and method == "FireServer" and tostring(self) == "Communicate" then
+                local data = args[1]
+                if type(data) == "table" and (data.Goal == "PingCheck" or data.Goal == "delete bv") then
+                    return nil 
+                end
 
-            if type(data) == "table" and data.Goal == "Auto Use End" then
-                local t = data.Tool
-                if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water") then
-                    task.spawn(function()
-                        local char = LocalPlayer.Character
-                        local root = char and char:FindFirstChild("HumanoidRootPart")
-                        if root then
-                            local oldCF = root.CFrame
-                            task.wait(WAIT_BEFORE)
-                            
-                            local p = Instance.new("Part", workspace)
-                            p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
-                            p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
-                            p.Anchored = true
-                            p.CanCollide = true
-                            p.Transparency = 0.5
-                            p.Color = Color3.fromRGB(255, 0, 0)
+                if type(data) == "table" and data.Goal == "Auto Use End" then
+                    local t = data.Tool
+                    if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water") then
+                        task.spawn(function()
+                            local char = LocalPlayer.Character
+                            local root = char and char:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                local oldCF = root.CFrame
+                                task.wait(WAIT_BEFORE)
+                                
+                                local p = Instance.new("Part", workspace)
+                                p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
+                                p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
+                                p.Anchored = true
+                                p.CanCollide = true
+                                p.Transparency = 0.5
+                                p.Color = Color3.fromRGB(255, 0, 0)
 
-                            root.CFrame = TARGET_CFRAME
-                            task.wait(WAIT_THERE)
-                            root.CFrame = oldCF
-                            p:Destroy()
-                        end
-                    end)
+                                root.CFrame = TARGET_CFRAME
+                                task.wait(WAIT_THERE)
+                                root.CFrame = oldCF
+                                p:Destroy()
+                            end
+                        end)
+                    end
                 end
             end
-        end
-        return oldNamecall(self, ...)
+            return oldNamecall(self, ...)
+        end)
     end)
-end
-
-task.spawn(setupSkillHook)
+end)
 
 skillBringBtn.MouseButton1Click:Connect(function()
     isSkillBring = not isSkillBring
@@ -288,7 +260,6 @@ trollLabel.TextSize = 24
 trollLabel.Font = Enum.Font.SourceSans
 trollLabel.TextYAlignment = Enum.TextYAlignment.Top
 trollLabel.BackgroundTransparency = 1
-trollLabel.ZIndex = 3
 trollLabel.Parent = trollTab
 
 -- ==================== FARM ====================
@@ -382,7 +353,6 @@ tpBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
 tpBtn.Font = Enum.Font.SourceSansBold
 tpBtn.TextSize = 14
 tpBtn.BorderSizePixel = 0
-tpBtn.ZIndex = 3
 tpBtn.Parent = farmTab
 Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 4)
 tpBtn.MouseButton1Click:Connect(function() teleportToDummy() end)
@@ -395,7 +365,6 @@ farmBtnToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 farmBtnToggle.Font = Enum.Font.SourceSansBold
 farmBtnToggle.TextSize = 14
 farmBtnToggle.BorderSizePixel = 0
-farmBtnToggle.ZIndex = 3
 farmBtnToggle.Parent = farmTab
 Instance.new("UICorner", farmBtnToggle).CornerRadius = UDim.new(0, 4)
 farmBtnToggle.MouseButton1Click:Connect(function()
@@ -421,7 +390,6 @@ ultBtnToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 ultBtnToggle.Font = Enum.Font.SourceSansBold
 ultBtnToggle.TextSize = 14
 ultBtnToggle.BorderSizePixel = 0
-ultBtnToggle.ZIndex = 3
 ultBtnToggle.Parent = farmTab
 Instance.new("UICorner", ultBtnToggle).CornerRadius = UDim.new(0, 4)
 ultBtnToggle.MouseButton1Click:Connect(function()
@@ -470,23 +438,14 @@ local function teleportToTarget(target)
     if not char then return false end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return false end
-    local behind = cframe * CFrame.new(0, 0, 3)
-    root.CFrame = behind
+    root.CFrame = cframe * CFrame.new(0, 0, 3)
     return true
 end
 
 local function sendSkill(target, skillName, isDummy)
     local event = getCommunicate()
     if not event then return end
-
-    local pos
-    if isDummy then
-        pos = getDummyPosition()
-    else
-        if not target then return end
-        pos = getTargetPosition(target)
-    end
-
+    local pos = isDummy and getDummyPosition() or getTargetPosition(target)
     if not pos then return end
 
     local args = {
@@ -494,16 +453,11 @@ local function sendSkill(target, skillName, isDummy)
         Goal = "Console Move",
         IsAutoActivate = true
     }
-
     pcall(function() event:FireServer(args) end)
 end
 
 local function startSaitamaTarget()
-    if saitamaTargetConnection then
-        saitamaTargetConnection:Disconnect()
-        saitamaTargetConnection = nil
-    end
-
+    if saitamaTargetConnection then saitamaTargetConnection:Disconnect() end
     local skillIndex = 1
     local lastTime = os.time()
 
@@ -513,18 +467,12 @@ local function startSaitamaTarget()
             saitamaTargetConnection = nil
             return
         end
-
         local pos = getTargetPosition(selectedTarget)
         if not pos then return end
-
-        local char = LocalPlayer.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not root then return end
 
-        local dist = (root.Position - pos).Magnitude
-
-        if dist > 4 then
+        if (root.Position - pos).Magnitude > 4 then
             teleportToTarget(selectedTarget)
         else
             local currentTime = os.time()
@@ -538,11 +486,7 @@ local function startSaitamaTarget()
 end
 
 local function startSaitamaDummy()
-    if saitamaDummyConnection then
-        saitamaDummyConnection:Disconnect()
-        saitamaDummyConnection = nil
-    end
-
+    if saitamaDummyConnection then saitamaDummyConnection:Disconnect() end
     local skillIndex = 1
     local lastTime = os.time()
 
@@ -552,18 +496,12 @@ local function startSaitamaDummy()
             saitamaDummyConnection = nil
             return
         end
-
         local dummyPos = getDummyPosition()
         if not dummyPos then return end
-
-        local char = LocalPlayer.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not root then return end
 
-        local dist = (root.Position - dummyPos).Magnitude
-
-        if dist > 4 then
+        if (root.Position - dummyPos).Magnitude > 4 then
             teleportToDummy()
         else
             local currentTime = os.time()
@@ -576,7 +514,6 @@ local function startSaitamaDummy()
     end)
 end
 
--- Выбор игрока для Saitama
 local selectedPlayerLabel = Instance.new("TextLabel")
 selectedPlayerLabel.Size = UDim2.new(1, 0, 0, 20)
 selectedPlayerLabel.Text = "Player: None"
@@ -585,7 +522,6 @@ selectedPlayerLabel.TextSize = 13
 selectedPlayerLabel.Font = Enum.Font.SourceSans
 selectedPlayerLabel.BackgroundTransparency = 1
 selectedPlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
-selectedPlayerLabel.ZIndex = 3
 selectedPlayerLabel.Parent = saitamaTab
 
 local selectPlayerBtn = Instance.new("TextButton")
@@ -596,17 +532,15 @@ selectPlayerBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
 selectPlayerBtn.Font = Enum.Font.SourceSansBold
 selectPlayerBtn.TextSize = 13
 selectPlayerBtn.BorderSizePixel = 0
-selectPlayerBtn.ZIndex = 3
 selectPlayerBtn.Parent = saitamaTab
 Instance.new("UICorner", selectPlayerBtn).CornerRadius = UDim.new(0, 4)
 
-local function openPlayerList()
+selectPlayerBtn.MouseButton1Click:Connect(function()
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 200, 0, 300)
     frame.Position = UDim2.new(0.5, -100, 0.5, -150)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     frame.Parent = ScreenGui
-    frame.ZIndex = 10
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
     local close = Instance.new("TextButton")
@@ -615,7 +549,6 @@ local function openPlayerList()
     close.Text = "X"
     close.TextColor3 = Color3.fromRGB(255, 80, 80)
     close.BackgroundTransparency = 1
-    close.ZIndex = 11
     close.Parent = frame
     close.MouseButton1Click:Connect(function() frame:Destroy() end)
 
@@ -625,7 +558,6 @@ local function openPlayerList()
     scroll.BackgroundTransparency = 1
     scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    scroll.ZIndex = 11
     scroll.Parent = frame
     Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 3)
 
@@ -636,7 +568,6 @@ local function openPlayerList()
             btn.Text = plr.Name
             btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
             btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.ZIndex = 12
             btn.Parent = scroll
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
             btn.MouseButton1Click:Connect(function()
@@ -646,11 +577,8 @@ local function openPlayerList()
             end)
         end
     end
-end
+end)
 
-selectPlayerBtn.MouseButton1Click:Connect(openPlayerList)
-
--- Saitama Target Toggle
 local saitamaTargetBtn = Instance.new("TextButton")
 saitamaTargetBtn.Size = UDim2.new(1, 0, 0, 32)
 saitamaTargetBtn.Text = "Target OFF"
@@ -659,7 +587,6 @@ saitamaTargetBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 saitamaTargetBtn.Font = Enum.Font.SourceSansBold
 saitamaTargetBtn.TextSize = 13
 saitamaTargetBtn.BorderSizePixel = 0
-saitamaTargetBtn.ZIndex = 3
 saitamaTargetBtn.Parent = saitamaTab
 Instance.new("UICorner", saitamaTargetBtn).CornerRadius = UDim.new(0, 4)
 
@@ -675,14 +602,10 @@ saitamaTargetBtn.MouseButton1Click:Connect(function()
         saitamaTargetBtn.Text = "Target OFF"
         saitamaTargetBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         saitamaTargetBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-        if saitamaTargetConnection then
-            saitamaTargetConnection:Disconnect()
-            saitamaTargetConnection = nil
-        end
+        if saitamaTargetConnection then saitamaTargetConnection:Disconnect() saitamaTargetConnection = nil end
     end
 end)
 
--- Saitama Dummy Toggle
 local saitamaDummyBtn = Instance.new("TextButton")
 saitamaDummyBtn.Size = UDim2.new(1, 0, 0, 32)
 saitamaDummyBtn.Text = "Dummy-farm OFF"
@@ -691,7 +614,6 @@ saitamaDummyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 saitamaDummyBtn.Font = Enum.Font.SourceSansBold
 saitamaDummyBtn.TextSize = 13
 saitamaDummyBtn.BorderSizePixel = 0
-saitamaDummyBtn.ZIndex = 3
 saitamaDummyBtn.Parent = saitamaTab
 Instance.new("UICorner", saitamaDummyBtn).CornerRadius = UDim.new(0, 4)
 
@@ -706,16 +628,12 @@ saitamaDummyBtn.MouseButton1Click:Connect(function()
         saitamaDummyBtn.Text = "Dummy-farm OFF"
         saitamaDummyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         saitamaDummyBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-        if saitamaDummyConnection then
-            saitamaDummyConnection:Disconnect()
-            saitamaDummyConnection = nil
-        end
+        if saitamaDummyConnection then saitamaDummyConnection:Disconnect() saitamaDummyConnection = nil end
     end
 end)
 
 -- ==================== УПРАВЛЕНИЕ ОКНОМ ====================
 local isMinimized = false
-
 MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
@@ -723,23 +641,12 @@ MinimizeButton.MouseButton1Click:Connect(function()
         LeftPanel.Visible = false
         RightPanel.Visible = false
         MinimizeButton.Text = ">"
-        ToggleGuiButton.Visible = true
     else
-        MainFrame:TweenSize(UDim2.new(0, 400, 0, 400), "Out", "Quad", 0.2, true)
+        MainFrame:TweenSize(UDim2.new(0, 400, 0, 360), "Out", "Quad", 0.2, true)
         LeftPanel.Visible = true
         RightPanel.Visible = true
         MinimizeButton.Text = "<"
-        ToggleGuiButton.Visible = false
     end
-end)
-
-ToggleGuiButton.MouseButton1Click:Connect(function()
-    isMinimized = false
-    MainFrame:TweenSize(UDim2.new(0, 400, 0, 400), "Out", "Quad", 0.2, true)
-    LeftPanel.Visible = true
-    RightPanel.Visible = true
-    MinimizeButton.Text = "<"
-    ToggleGuiButton.Visible = false
 end)
 
 CloseButton.MouseButton1Click:Connect(function()
