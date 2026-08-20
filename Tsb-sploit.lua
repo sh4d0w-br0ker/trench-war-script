@@ -107,7 +107,7 @@ local function createTab(tabName, displayName)
     btn.BorderSizePixel = 0
     btn.Parent = LeftButtonContainer
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
-    
+
     local content = Instance.new("ScrollingFrame")
     content.Size = UDim2.new(1, -6, 1, -6)
     content.Position = UDim2.new(0, 3, 0, 3)
@@ -118,7 +118,7 @@ local function createTab(tabName, displayName)
     content.AutomaticCanvasSize = Enum.AutomaticSize.Y
     content.Parent = RightPanel
     Instance.new("UIListLayout", content).Padding = UDim.new(0, 4)
-    
+
     btn.MouseButton1Click:Connect(function()
         for _, child in pairs(RightPanel:GetChildren()) do
             if child:IsA("ScrollingFrame") then
@@ -127,7 +127,7 @@ local function createTab(tabName, displayName)
         end
         content.Visible = true
     end)
-    
+
     return btn, content
 end
 
@@ -155,7 +155,7 @@ infoLabel.Parent = infoTab
 -- ==================== EXPLOIT & SKILL-BRING ====================
 local exploitLabel = Instance.new("TextLabel")
 exploitLabel.Size = UDim2.new(1, 0, 0, 45)
-exploitLabel.Text = "worked: Garou, Brutal beat, trinity, Hudoshnik"
+exploitLabel.Text = "worked: Garou, Brutal beat, trinity, Hudoshnik, immortal"
 exploitLabel.TextColor3 = Color3.new(1, 1, 1)
 exploitLabel.TextSize = 13
 exploitLabel.Font = Enum.Font.SourceSansBold
@@ -237,7 +237,7 @@ RunService.Heartbeat:Connect(function()
         if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             local char = plr.Character
             local root = char.HumanoidRootPart
-            
+
             local highlight = char:FindFirstChild("SpynoteESP")
             if not highlight then
                 highlight = Instance.new("Highlight")
@@ -250,7 +250,7 @@ RunService.Heartbeat:Connect(function()
                 highlight.Parent = char
                 table.insert(espHighlights, highlight)
             end
-            
+
             local bill = root:FindFirstChild("SpynoteESPText")
             if not bill then
                 bill = Instance.new("BillboardGui")
@@ -258,7 +258,7 @@ RunService.Heartbeat:Connect(function()
                 bill.Size = UDim2.new(0, 100, 0, 30)
                 bill.StudsOffset = Vector3.new(0, 3, 0)
                 bill.AlwaysOnTop = true
-                
+
                 local txt = Instance.new("TextLabel")
                 txt.Name = "Distance"
                 txt.Size = UDim2.new(1, 0, 1, 0)
@@ -271,7 +271,7 @@ RunService.Heartbeat:Connect(function()
                 bill.Parent = root
                 table.insert(espBillboards, bill)
             end
-            
+
             local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             if localRoot and bill:FindFirstChild("Distance") then
                 local dist = math.floor((root.Position - localRoot.Position).Magnitude)
@@ -298,27 +298,27 @@ local function showUltNotification(msg)
     alert.ZIndex = 10
     alert.Parent = ScreenGui
     Instance.new("UICorner", alert).CornerRadius = UDim.new(0, 6)
-    
+
     task.delay(3, function() if alert then alert:Destroy() end end)
 end
 
 local function startUltLogger()
     if ultLoggerConnection then ultLoggerConnection:Disconnect() end
     notifiedPlayers = {}
-    
+
     ultLoggerConnection = RunService.Heartbeat:Connect(function()
         if not isUltLogger then
             ultLoggerConnection:Disconnect()
             ultLoggerConnection = nil
             return
         end
-        
+
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= LocalPlayer then
                 local bp = plr:FindFirstChild("Backpack")
                 local char = plr.Character
                 local detectedStyle = nil
-                
+
                 local function checkContainer(container)
                     if container then
                         if container:FindFirstChild("Table Flip") or container:FindFirstChild("Serious Punch") or container:FindFirstChild("Omni Directional Punch") or container:FindFirstChild("Death Counter") then
@@ -336,10 +336,10 @@ local function startUltLogger()
                         end
                     end
                 end
-                
+
                 checkContainer(bp)
                 checkContainer(char)
-                
+
                 if detectedStyle then
                     if not notifiedPlayers[plr] then
                         notifiedPlayers[plr] = true
@@ -404,6 +404,11 @@ local isTornadoRunning = false
 local isDeathBlowHit = false
 local isDeathBlowRunning = false
 local selectedDeathBlowTarget = nil
+
+local isEvilTwinsAll = false
+local isEvilTwinsRunning = false
+local EVIL_TARGET_CFRAME = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)
+local EVIL_PLAT_SIZE = 200
 
 local deathBlowPlayerLabel = Instance.new("TextLabel")
 deathBlowPlayerLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -545,32 +550,57 @@ sunsetBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Communicate hook (Skill-Bring с добавленным Twin Fangs + Текстовые триггеры)
+local evilTwinsBtn = Instance.new("TextButton")
+evilTwinsBtn.Size = UDim2.new(1, 0, 0, 32)
+evilTwinsBtn.Text = "Evil-Twins-All OFF"
+evilTwinsBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+evilTwinsBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+evilTwinsBtn.Font = Enum.Font.SourceSansBold
+evilTwinsBtn.TextSize = 13
+evilTwinsBtn.BorderSizePixel = 0
+evilTwinsBtn.Parent = trollTab
+Instance.new("UICorner", evilTwinsBtn).CornerRadius = UDim.new(0, 4)
+
+evilTwinsBtn.MouseButton1Click:Connect(function()
+    isEvilTwinsAll = not isEvilTwinsAll
+    if isEvilTwinsAll then
+        evilTwinsBtn.Text = "Evil-Twins-All ON"
+        evilTwinsBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        evilTwinsBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    else
+        evilTwinsBtn.Text = "Evil-Twins-All OFF"
+        evilTwinsBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        evilTwinsBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        isEvilTwinsRunning = false
+    end
+end)
+
+-- Communicate hook
 task.spawn(function()
     pcall(function()
         local oldNamecall
         oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
             local args = {...}
             local method = getnamecallmethod()
-            
+
             if method == "FireServer" and tostring(self) == "Communicate" then
                 local data = args[1]
                 if type(data) == "table" then
-                    -- ТРИГГЕР ДЛЯ SKILL-BRING (включая Twin Fangs и консольный запуск)
+                    -- SKILL-BRING
                     if isSkillBring then
                         if data.Goal == "PingCheck" or data.Goal == "delete bv" then
                             return nil 
                         end
                         if data.Goal == "Auto Use End" or data.Goal == "Console Move" then
                             local t = data.Tool
-                            if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water" or t.Name == "Beatdown" or t.Name == "Head First" or t.Name == "Trinity Tear") then
+                            if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water" or t.Name == "Beatdown" or t.Name == "Head First" or t.Name == "Trinity Tear" or t.Name == "Grave Maker") then
                                 task.spawn(function()
                                     local char = LocalPlayer.Character
                                     local root = char and char:FindFirstChild("HumanoidRootPart")
                                     if root then
                                         local oldCF = root.CFrame
                                         task.wait(WAIT_BEFORE)
-                                        
+
                                         local p = Instance.new("Part", workspace)
                                         p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
                                         p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
@@ -589,6 +619,7 @@ task.spawn(function()
                         end
                     end
 
+                    -- SUNSET-ALL
                     if isSunsetAll and not isSunsetRunning then
                         local t = data.Tool
                         if t and t.Name == "Sunset" then
@@ -597,7 +628,7 @@ task.spawn(function()
                                 task.wait(1.0)
                                 local char = LocalPlayer.Character
                                 local root = char and char:FindFirstChild("HumanoidRootPart")
-                                
+
                                 if root then
                                     local oldCF = root.CFrame
                                     for _, plr in ipairs(Players:GetPlayers()) do
@@ -617,6 +648,7 @@ task.spawn(function()
                         end
                     end
 
+                    -- SAVAGE-TORNADO-ALL
                     if isSavageTornadoAll and not isTornadoRunning then
                         local t = data.Tool
                         if t and t.Name == "Savage Tornado" then
@@ -625,7 +657,7 @@ task.spawn(function()
                                 task.wait(1.2)
                                 local char = LocalPlayer.Character
                                 local root = char and char:FindFirstChild("HumanoidRootPart")
-                                
+
                                 if root then
                                     local oldCF = root.CFrame
                                     for _, plr in ipairs(Players:GetPlayers()) do
@@ -645,6 +677,7 @@ task.spawn(function()
                         end
                     end
 
+                    -- DEATH-BLOW HIT
                     if isDeathBlowHit and not isDeathBlowRunning and selectedDeathBlowTarget then
                         local t = data.Tool
                         if t and t.Name == "Death Blow" then
@@ -653,7 +686,7 @@ task.spawn(function()
                                 task.wait(2.0)
                                 local char = LocalPlayer.Character
                                 local root = char and char:FindFirstChild("HumanoidRootPart")
-                                
+
                                 if root and selectedDeathBlowTarget.Character then
                                     local targetRoot = selectedDeathBlowTarget.Character:FindFirstChild("HumanoidRootPart")
                                     if targetRoot then
@@ -662,6 +695,75 @@ task.spawn(function()
                                 end
                                 task.wait(0.5)
                                 isDeathBlowRunning = false
+                            end)
+                        end
+                    end
+
+                    -- EVIL-TWINS-ALL
+                    if isEvilTwinsAll and not isEvilTwinsRunning then
+                        local t = data.Tool
+                        if t and t.Name == "Twin Fangs" then
+                            isEvilTwinsRunning = true
+                            task.spawn(function()
+                                local char = LocalPlayer.Character
+                                local root = char and char:FindFirstChild("HumanoidRootPart")
+                                if not root then
+                                    isEvilTwinsRunning = false
+                                    return
+                                end
+
+                                local oldCF = root.CFrame
+                                local playersList = {}
+
+                                for _, plr in ipairs(Players:GetPlayers()) do
+                                    if plr ~= LocalPlayer and plr.Character then
+                                        local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+                                        if targetRoot then
+                                            table.insert(playersList, targetRoot)
+                                        end
+                                    end
+                                end
+
+                                if #playersList == 0 then
+                                    isEvilTwinsRunning = false
+                                    return
+                                end
+
+                                -- Шаг 1: Быстро телепортируемся к 10 случайным игрокам
+                                local shuffled = {}
+                                for i, v in ipairs(playersList) do shuffled[i] = v end
+                                for i = #shuffled, 2, -1 do
+                                    local j = math.random(1, i)
+                                    shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+                                end
+
+                                local count = math.min(10, #shuffled)
+                                for i = 1, count do
+                                    if not isEvilTwinsAll then break end
+                                    root.CFrame = shuffled[i].CFrame * CFrame.new(0, 0, 1.5)
+                                    task.wait(0.2)
+                                end
+
+                                -- Шаг 2: Создаём платформу и телепортируемся на неё
+                                local p = Instance.new("Part", workspace)
+                                p.Size = Vector3.new(EVIL_PLAT_SIZE, 2, EVIL_PLAT_SIZE)
+                                p.CFrame = EVIL_TARGET_CFRAME * CFrame.new(0, -4, 0)
+                                p.Anchored = true
+                                p.CanCollide = true
+                                p.Transparency = 0.5
+                                p.Color = Color3.fromRGB(150, 0, 255)
+
+                                root.CFrame = EVIL_TARGET_CFRAME
+
+                                -- Ждём 5 секунд на платформе
+                                task.wait(5)
+
+                                -- Возврат
+                                root.CFrame = oldCF
+                                p:Destroy()
+
+                                task.wait(0.5)
+                                isEvilTwinsRunning = false
                             end)
                         end
                     end
@@ -1028,6 +1130,7 @@ CloseButton.MouseButton1Click:Connect(function()
     isDeathBlowHit = false
     isUltLogger = false
     isEspEnabled = false
+    isEvilTwinsAll = false
     clearEsp()
     if farmConnection then farmConnection:Disconnect() end
     if ultConnection then ultConnection:Disconnect() end
