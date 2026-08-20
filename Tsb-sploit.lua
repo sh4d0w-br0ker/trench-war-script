@@ -636,7 +636,7 @@ task.spawn(function()
                                             local targetRoot = plr.Character:FindFirstChild("HumanoidRootPart")
                                             if targetRoot then
                                                 root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 2)
-                                                task.wait(0.7)
+                                                task.wait(1.2)
                                             end
                                         end
                                     end
@@ -741,7 +741,7 @@ task.spawn(function()
                                 for i = 1, count do
                                     if not isEvilTwinsAll then break end
                                     root.CFrame = shuffled[i].CFrame * CFrame.new(0, 0, 1.5)
-                                    task.wait(0.2)
+                                    task.wait(0.8)
                                 end
 
                                 -- Шаг 2: Создаём платформу и телепортируемся на неё
