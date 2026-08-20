@@ -563,7 +563,7 @@ task.spawn(function()
                         end
                         if data.Goal == "Auto Use End" or data.Goal == "Console Move" then
                             local t = data.Tool
-                            if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water" or t.Name == "Beatdown" or t.Name == "Head First" or t.Name == "Trinity Tear" or t.Name == "Twin Fangs") then
+                            if t and (t.Name == "Lethal Whirlwind Stream" or t.Name == "Flowing Water" or t.Name == "Beatdown" or t.Name == "Head First" or t.Name == "Trinity Tear") then
                                 task.spawn(function()
                                     local char = LocalPlayer.Character
                                     local root = char and char:FindFirstChild("HumanoidRootPart")
