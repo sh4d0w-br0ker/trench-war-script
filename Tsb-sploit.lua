@@ -1,4 +1,4 @@
--- Spynote Tsb-sploit (Multi-Ult-Logger, Sunset-All, Twin Fangs in Skill-Bring & Invisible Give)
+-- Spynote Tsb-sploit (Multi-Ult-Logger, Sunset-All, Twin Fangs, Skill-Bring Locations & Give Trash)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
@@ -165,10 +165,83 @@ exploitLabel.BackgroundTransparency = 1
 exploitLabel.Parent = exploitTab
 
 local isSkillBring = false
-local TARGET_CFRAME = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)
 local WAIT_BEFORE = 1
 local WAIT_THERE = 4
 local PLAT_SIZE = 150
+
+-- Skill-Bring Locations
+local skillLocations = {
+    {name = "Void", cframe = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)},
+    {name = "Atoms", cframe = workspace.Cutscenes and workspace.Cutscenes:FindFirstChild("Atoms") and workspace.Cutscenes.Atoms.CFrame or CFrame.new(0, 0, 0)},
+    {name = "Death Cutscene", cframe = workspace.Cutscenes and workspace.Cutscenes:FindFirstChild("Death Cutscene") and workspace.Cutscenes["Death Cutscene"].CFrame or CFrame.new(0, 0, 0)}
+}
+
+local selectedSkillLocation = skillLocations[1]
+
+local skillLocationLabel = Instance.new("TextLabel")
+skillLocationLabel.Size = UDim2.new(1, 0, 0, 20)
+skillLocationLabel.Text = "Locate: Void"
+skillLocationLabel.TextColor3 = Color3.new(1, 1, 1)
+skillLocationLabel.TextSize = 13
+skillLocationLabel.Font = Enum.Font.SourceSans
+skillLocationLabel.BackgroundTransparency = 1
+skillLocationLabel.TextXAlignment = Enum.TextXAlignment.Left
+skillLocationLabel.Parent = exploitTab
+
+local selectLocationBtn = Instance.new("TextButton")
+selectLocationBtn.Size = UDim2.new(1, 0, 0, 30)
+selectLocationBtn.Text = "Select Location"
+selectLocationBtn.TextColor3 = Color3.new(1, 1, 1)
+selectLocationBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+selectLocationBtn.Font = Enum.Font.SourceSansBold
+selectLocationBtn.TextSize = 13
+selectLocationBtn.BorderSizePixel = 0
+selectLocationBtn.Parent = exploitTab
+Instance.new("UICorner", selectLocationBtn).CornerRadius = UDim.new(0, 4)
+
+selectLocationBtn.MouseButton1Click:Connect(function()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 300)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -150)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    frame.Parent = ScreenGui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+    local close = Instance.new("TextButton")
+    close.Size = UDim2.new(0, 30, 0, 30)
+    close.Position = UDim2.new(1, -30, 0, 0)
+    close.Text = "X"
+    close.TextColor3 = Color3.fromRGB(255, 80, 80)
+    close.BackgroundTransparency = 1
+    close.Parent = frame
+    close.MouseButton1Click:Connect(function() frame:Destroy() end)
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -10, 1, -40)
+    scroll.Position = UDim2.new(0, 5, 0, 35)
+    scroll.BackgroundTransparency = 1
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.Parent = frame
+    Instance.new("UIListLayout", scroll).Padding = UDim.new(0, 3)
+
+    for _, loc in ipairs(skillLocations) do
+        if loc.cframe then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 30)
+            btn.Text = loc.name
+            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Parent = scroll
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+            btn.MouseButton1Click:Connect(function()
+                selectedSkillLocation = loc
+                skillLocationLabel.Text = "Locate: " .. loc.name
+                frame:Destroy()
+            end)
+        end
+    end
+end)
 
 local skillBringBtn = Instance.new("TextButton")
 skillBringBtn.Size = UDim2.new(1, 0, 0, 32)
@@ -404,7 +477,6 @@ local isTornadoRunning = false
 local isDeathBlowHit = false
 local isDeathBlowRunning = false
 local selectedDeathBlowTarget = nil
-
 local isEvilTwinsAll = false
 local isEvilTwinsRunning = false
 local EVIL_TARGET_CFRAME = CFrame.new(100.728096, -489.499664, 47.9694824, -0.0552487373, 0, -0.998472571, 0, 1, 0, 0.998472571, 0, -0.0552487373)
@@ -575,6 +647,65 @@ evilTwinsBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- КНОПКА GIVE TRASH (БЕЗ OFF/ON, ПРОСТО КНОПКА)
+local giveTrashBtn = Instance.new("TextButton")
+giveTrashBtn.Size = UDim2.new(1, 0, 0, 32)
+giveTrashBtn.Text = "Give Trash"
+giveTrashBtn.TextColor3 = Color3.new(1, 1, 1)
+giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+giveTrashBtn.Font = Enum.Font.SourceSansBold
+giveTrashBtn.TextSize = 13
+giveTrashBtn.BorderSizePixel = 0
+giveTrashBtn.Parent = trollTab
+Instance.new("UICorner", giveTrashBtn).CornerRadius = UDim.new(0, 4)
+
+giveTrashBtn.MouseButton1Click:Connect(function()
+    task.spawn(function()
+        local char = LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        local trashFolder = workspace:FindFirstChild("Map")
+        if trashFolder then
+            trashFolder = trashFolder:FindFirstChild("Trash")
+        end
+
+        if not trashFolder then
+            return
+        end
+
+        local trashParts = {}
+        for _, child in ipairs(trashFolder:GetChildren()) do
+            if child.Name == "Trashcan" then
+                table.insert(trashParts, child)
+            end
+        end
+
+        if #trashParts == 0 then
+            return
+        end
+
+        local randomTrash = trashParts[math.random(1, #trashParts)]
+        local targetCF = randomTrash.CFrame
+
+        local oldCF = root.CFrame
+        root.CFrame = targetCF * CFrame.new(0, 0, 3)
+
+        local event = getCommunicate()
+        if event then
+            local mousePos = CFrame.new(-15.189651489258, 437.50625610352, -291.66638183594, 0.4187351167202, -0.4214374423027, 0.80439513921738, -0, 0.88579201698303, 0.46408268809319, -0.90810853242874, -0.19432771205902, 0.37091213464737)
+            pcall(function()
+                event:FireServer({ Mobile = true, Goal = "LeftClick", MousePos = mousePos })
+            end)
+            pcall(function()
+                event:FireServer({ Goal = "LeftClickRelease", Mobile = true })
+            end)
+        end
+
+        root.CFrame = oldCF
+    end)
+end)
+
 -- Communicate hook
 task.spawn(function()
     pcall(function()
@@ -597,19 +728,20 @@ task.spawn(function()
                                 task.spawn(function()
                                     local char = LocalPlayer.Character
                                     local root = char and char:FindFirstChild("HumanoidRootPart")
-                                    if root then
+                                    if root and selectedSkillLocation and selectedSkillLocation.cframe then
                                         local oldCF = root.CFrame
                                         task.wait(WAIT_BEFORE)
 
+                                        local targetCF = selectedSkillLocation.cframe
                                         local p = Instance.new("Part", workspace)
                                         p.Size = Vector3.new(PLAT_SIZE, 2, PLAT_SIZE)
-                                        p.CFrame = TARGET_CFRAME * CFrame.new(0, -4, 0)
+                                        p.CFrame = targetCF * CFrame.new(0, -4, 0)
                                         p.Anchored = true
                                         p.CanCollide = true
                                         p.Transparency = 0.5
                                         p.Color = Color3.fromRGB(255, 0, 0)
 
-                                        root.CFrame = TARGET_CFRAME
+                                        root.CFrame = targetCF
                                         task.wait(WAIT_THERE)
                                         root.CFrame = oldCF
                                         p:Destroy()
@@ -729,7 +861,6 @@ task.spawn(function()
                                     return
                                 end
 
-                                -- Шаг 1: Быстро телепортируемся к 10 случайным игрокам
                                 local shuffled = {}
                                 for i, v in ipairs(playersList) do shuffled[i] = v end
                                 for i = #shuffled, 2, -1 do
@@ -744,7 +875,6 @@ task.spawn(function()
                                     task.wait(0.8)
                                 end
 
-                                -- Шаг 2: Создаём платформу и телепортируемся на неё
                                 local p = Instance.new("Part", workspace)
                                 p.Size = Vector3.new(EVIL_PLAT_SIZE, 2, EVIL_PLAT_SIZE)
                                 p.CFrame = EVIL_TARGET_CFRAME * CFrame.new(0, -4, 0)
@@ -754,14 +884,9 @@ task.spawn(function()
                                 p.Color = Color3.fromRGB(150, 0, 255)
 
                                 root.CFrame = EVIL_TARGET_CFRAME
-
-                                -- Ждём 5 секунд на платформе
                                 task.wait(5)
-
-                                -- Возврат
                                 root.CFrame = oldCF
                                 p:Destroy()
-
                                 task.wait(0.5)
                                 isEvilTwinsRunning = false
                             end)
