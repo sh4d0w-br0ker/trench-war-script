@@ -404,6 +404,7 @@ local isTornadoRunning = false
 local isDeathBlowHit = false
 local isDeathBlowRunning = false
 local selectedDeathBlowTarget = nil
+local isGiveTrash = false
 
 local isEvilTwinsAll = false
 local isEvilTwinsRunning = false
@@ -574,6 +575,18 @@ evilTwinsBtn.MouseButton1Click:Connect(function()
         isEvilTwinsRunning = false
     end
 end)
+
+-- ==================== ВИЗУАЛИЗАЦИЯ КНОПКИ GIVE TRASH ====================
+local giveTrashBtn = Instance.new("TextButton")
+giveTrashBtn.Size = UDim2.new(1, 0, 0, 32)
+giveTrashBtn.Text = "Give Trash"
+giveTrashBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+giveTrashBtn.Font = Enum.Font.SourceSansBold
+giveTrashBtn.TextSize = 13
+giveTrashBtn.BorderSizePixel = 0
+giveTrashBtn.Parent = trollTab
+Instance.new("UICorner", giveTrashBtn).CornerRadius = UDim.new(0, 4)
 
 
 -- Communicate hook
@@ -774,6 +787,67 @@ task.spawn(function()
         end)
     end)
 end)
+
+-- ==================== СЮДА ВСТАВЛЯЙ ЛОГИКУ GIVE TRASH ====================
+giveTrashBtn.MouseButton1Click:Connect(function()
+    giveTrashBtn.Text = "Getting Trash..."
+    giveTrashBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+    
+    task.spawn(function()
+        local char = LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then
+            giveTrashBtn.Text = "Give Trash"
+            giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+            return
+        end
+
+        local trashFolder = workspace:FindFirstChild("Map")
+        if trashFolder then
+            trashFolder = trashFolder:FindFirstChild("Trash")
+        end
+        if not trashFolder then
+            giveTrashBtn.Text = "Give Trash"
+            giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+            return
+        end
+
+        local trashParts = {}
+        for _, child in ipairs(trashFolder:GetChildren()) do
+            if child.Name == "Trashcan" then
+                table.insert(trashParts, child)
+            end
+        end
+        if #trashParts == 0 then
+            giveTrashBtn.Text = "Give Trash"
+            giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+            return
+        end
+
+        local randomTrash = trashParts[math.random(1, #trashParts)]
+        local targetCF = randomTrash.CFrame
+        local oldCF = root.CFrame
+
+        root.CFrame = targetCF * CFrame.new(0, 0, 3)
+
+        local event = getCommunicate()
+        if event then
+            local mousePos = CFrame.new(-15.189651489258, 437.50625610352, -291.66638183594, 0.4187351167202, -0.4214374423027, 0.80439513921738, -0, 0.88579201698303, 0.46408268809319, -0.90810853242874, -0.19432771205902, 0.37091213464737)
+            pcall(function()
+                event:FireServer({ Mobile = true, Goal = "LeftClick", MousePos = mousePos })
+            end)
+            pcall(function()
+                event:FireServer({ Goal = "LeftClickRelease", Mobile = true })
+            end)
+        end
+
+        root.CFrame = oldCF
+        
+        giveTrashBtn.Text = "Give Trash"
+        giveTrashBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+    end)
+end)
+
 
 -- ==================== FARM TAB ====================
 local isFarming = false
