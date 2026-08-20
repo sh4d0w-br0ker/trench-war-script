@@ -575,6 +575,48 @@ evilTwinsBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- ==================== GIVE TRASH (В КОНЦЕ TROLL TAB) ====================
+local giveTrashBtn = createButton(trollTab, "Give Trash", Color3.fromRGB(200, 150, 50), function()
+    task.spawn(function()
+        local char = LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+
+        local trashFolder = workspace:FindFirstChild("Map")
+        if trashFolder then
+            trashFolder = trashFolder:FindFirstChild("Trash")
+        end
+        if not trashFolder then return end
+
+        local trashParts = {}
+        for _, child in ipairs(trashFolder:GetChildren()) do
+            if child.Name == "Trashcan" then
+                table.insert(trashParts, child)
+            end
+        end
+        if #trashParts == 0 then return end
+
+        local randomTrash = trashParts[math.random(1, #trashParts)]
+        local targetCF = randomTrash.CFrame
+        local oldCF = root.CFrame
+
+        root.CFrame = targetCF * CFrame.new(0, 0, 3)
+
+        local event = getCommunicate()
+        if event then
+            local mousePos = CFrame.new(-15.189651489258, 437.50625610352, -291.66638183594, 0.4187351167202, -0.4214374423027, 0.80439513921738, -0, 0.88579201698303, 0.46408268809319, -0.90810853242874, -0.19432771205902, 0.37091213464737)
+            pcall(function()
+                event:FireServer({ Mobile = true, Goal = "LeftClick", MousePos = mousePos })
+            end)
+            pcall(function()
+                event:FireServer({ Goal = "LeftClickRelease", Mobile = true })
+            end)
+        end
+
+        root.CFrame = oldCF
+    end)
+end)
+
 -- Communicate hook
 task.spawn(function()
     pcall(function()
