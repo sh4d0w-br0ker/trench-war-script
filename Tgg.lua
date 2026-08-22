@@ -146,11 +146,11 @@ GiveBtn.MouseButton1Click:Connect(function()
         -- Микро-пауза для прогрузки позиции
         task.wait(0.1)
 
-        -- 3. ОТПРАВЛЯЕМ 2 КЛИКА ПОДРЯД
+        -- 3. ОТПРАВЛЯЕМ 2 КЛИКА ПОДРЯД (Берем текущие координаты возле мусорки)
         local clickData = {
             Mobile = true,
             Goal = "LeftClick",
-            MousePos = CFrame.new(-15.189651489258, 437.50625610352, -291.66638183594, 0.4187351167202, -0.4214374423027, 0.80439513921738, -0, 0.88579201698303, 0.46408268809319, -0.90810853242874, -0.19432771205902, 0.37091213464737)
+            MousePos = root.CFrame
         }
         
         pcall(function() event:FireServer(clickData) end)
