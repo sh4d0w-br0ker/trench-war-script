@@ -396,6 +396,22 @@ invisibleGiveBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
+-- ==================== КНОПКА GIVE TRASH-GIVER В PLAYER TAB ====================
+local giveTrashGiverBtn = Instance.new("TextButton")
+giveTrashGiverBtn.Size = UDim2.new(1, 0, 0, 32)
+giveTrashGiverBtn.Text = "Give Trash-Giver"
+giveTrashGiverBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+giveTrashGiverBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+giveTrashGiverBtn.Font = Enum.Font.SourceSansBold
+giveTrashGiverBtn.TextSize = 13
+giveTrashGiverBtn.BorderSizePixel = 0
+giveTrashGiverBtn.Parent = playerTab
+Instance.new("UICorner", giveTrashGiverBtn).CornerRadius = UDim.new(0, 4)
+
+giveTrashGiverBtn.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/Tgg.lua", true))()
+end)
+
 -- ==================== TROLL TAB ====================
 local isSunsetAll = false
 local isSunsetRunning = false
