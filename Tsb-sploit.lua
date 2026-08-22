@@ -412,6 +412,42 @@ giveTrashGiverBtn.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/Tgg.lua", true))()
 end)
 
+-- ==================== INSTANT RESET (В PLAYER TAB) ====================
+local resetBtn = Instance.new("TextButton")
+resetBtn.Size = UDim2.new(1, 0, 0, 32)
+resetBtn.Text = "Instant Reset"
+resetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+resetBtn.Font = Enum.Font.SourceSansBold
+resetBtn.TextSize = 13
+resetBtn.BorderSizePixel = 0
+resetBtn.Parent = playerTab
+Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 4)
+
+resetBtn.MouseButton1Click:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(-237.64711, -505.199341, -519.572815, -0.779444277, -0.163655505, 0.604717672, 0.0116138598, 0.961334944, 0.275136828, -0.626363873, 0.221476942, -0.747406363)
+    end
+end)
+
+-- ==================== GIVE LOCATE-CONTROL (В PLAYER TAB) ====================
+local locateControlBtn = Instance.new("TextButton")
+locateControlBtn.Size = UDim2.new(1, 0, 0, 32)
+locateControlBtn.Text = "Give Locate-Control"
+locateControlBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+locateControlBtn.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+locateControlBtn.Font = Enum.Font.SourceSansBold
+locateControlBtn.TextSize = 13
+locateControlBtn.BorderSizePixel = 0
+locateControlBtn.Parent = playerTab
+Instance.new("UICorner", locateControlBtn).CornerRadius = UDim.new(0, 4)
+
+locateControlBtn.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/sh4d0w-br0ker/trench-war-script/refs/heads/main/LC.lua", true))()
+end)
+
+
 -- ==================== TROLL TAB ====================
 local isSunsetAll = false
 local isSunsetRunning = false
