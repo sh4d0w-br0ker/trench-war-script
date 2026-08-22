@@ -281,6 +281,155 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+-- ==================== SAITAMA-ULT ESP (В ESP TAB) ====================
+local isSaitamaEspEnabled = false
+local saitamaEspHighlights = {}
+local saitamaEspBillboards = {}
+
+local function clearSaitamaEsp()
+    for _, item in pairs(saitamaEspHighlights) do
+        if item then item:Destroy() end
+    end
+    saitamaEspHighlights = {}
+    for _, bill in pairs(saitamaEspBillboards) do
+        if bill then bill:Destroy() end
+    end
+    saitamaEspBillboards = {}
+end
+
+local function isSaitamaPlayer(plr)
+    if not plr then return false end
+    local bp = plr:FindFirstChild("Backpack")
+    local char = plr.Character
+    local function checkContainer(container)
+        if container then
+            if container:FindFirstChild("Table Flip") or
+               container:FindFirstChild("Serious Punch") or
+               container:FindFirstChild("Omni Directional Punch") or
+               container:FindFirstChild("Death Counter") then
+                return true
+            end
+        end
+        return false
+    end
+    return checkContainer(bp) or checkContainer(char)
+end
+
+local function updateSaitamaEsp()
+    if not isSaitamaEspEnabled then
+        clearSaitamaEsp()
+        return
+    end
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and isSaitamaPlayer(plr) and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local char = plr.Character
+            local root = char.HumanoidRootPart
+
+            -- Подсветка
+            local highlight = char:FindFirstChild("SaitamaESP")
+            if not highlight then
+                highlight = Instance.new("Highlight")
+                highlight.Name = "SaitamaESP"
+                highlight.Adornee = char
+                highlight.FillColor = Color3.fromRGB(0, 255, 0)
+                highlight.FillTransparency = 0.5
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.OutlineTransparency = 0
+                highlight.Parent = char
+                table.insert(saitamaEspHighlights, highlight)
+            end
+
+            -- Billboard с расстоянием
+            local bill = root:FindFirstChild("SaitamaESPText")
+            if not bill then
+                bill = Instance.new("BillboardGui")
+                bill.Name = "SaitamaESPText"
+                bill.Size = UDim2.new(0, 100, 0, 30)
+                bill.StudsOffset = Vector3.new(0, 3, 0)
+                bill.AlwaysOnTop = true
+
+                local txt = Instance.new("TextLabel")
+                txt.Name = "Distance"
+                txt.Size = UDim2.new(1, 0, 1, 0)
+                txt.BackgroundTransparency = 1
+                txt.TextColor3 = Color3.fromRGB(0, 255, 0)
+                txt.TextSize = 11
+                txt.Font = Enum.Font.SourceSansBold
+                txt.TextStrokeTransparency = 0
+                txt.Parent = bill
+                bill.Parent = root
+                table.insert(saitamaEspBillboards, bill)
+            end
+
+            local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if localRoot and bill:FindFirstChild("Distance") then
+                local dist = math.floor((root.Position - localRoot.Position).Magnitude)
+                bill.Distance.Text = "Saitama: " .. dist .. " studs"
+            end
+        else
+            -- Удаляем ESP у игроков, у которых больше нет ульты
+            if plr.Character then
+                local highlight = plr.Character:FindFirstChild("SaitamaESP")
+                if highlight then
+                    highlight:Destroy()
+                    for i, item in pairs(saitamaEspHighlights) do
+                        if item == highlight then
+                            table.remove(saitamaEspHighlights, i)
+                            break
+                        end
+                    end
+                end
+                local root = plr.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    local bill = root:FindFirstChild("SaitamaESPText")
+                    if bill then
+                        bill:Destroy()
+                        for i, item in pairs(saitamaEspBillboards) do
+                            if item == bill then
+                                table.remove(saitamaEspBillboards, i)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+local saitamaEspBtn = Instance.new("TextButton")
+saitamaEspBtn.Size = UDim2.new(1, 0, 0, 32)
+saitamaEspBtn.Text = "Saitama-Ult Esp OFF"
+saitamaEspBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+saitamaEspBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+saitamaEspBtn.Font = Enum.Font.SourceSansBold
+saitamaEspBtn.TextSize = 13
+saitamaEspBtn.BorderSizePixel = 0
+saitamaEspBtn.Parent = espTab
+Instance.new("UICorner", saitamaEspBtn).CornerRadius = UDim.new(0, 4)
+
+saitamaEspBtn.MouseButton1Click:Connect(function()
+    isSaitamaEspEnabled = not isSaitamaEspEnabled
+    if isSaitamaEspEnabled then
+        saitamaEspBtn.Text = "Saitama-Ult Esp ON"
+        saitamaEspBtn.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
+        saitamaEspBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+        -- Запускаем обновление в цикле
+        task.spawn(function()
+            while isSaitamaEspEnabled do
+                updateSaitamaEsp()
+                task.wait(0.5)
+            end
+        end)
+    else
+        saitamaEspBtn.Text = "Saitama-Ult Esp OFF"
+        saitamaEspBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        saitamaEspBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+        clearSaitamaEsp()
+    end
+end)
+
 -- ==================== PLAYER TAB ====================
 local isUltLogger = false
 local ultLoggerConnection = nil
